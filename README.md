@@ -1,4 +1,4 @@
-# AML_GP
+# Machine Learning for Species Analysis
 Applied Machine Learning Group Project
 
 ---------------------------------------------------------------------------
