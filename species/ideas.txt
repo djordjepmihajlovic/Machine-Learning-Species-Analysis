@@ -1,0 +1,10 @@
+Place to jot down ideas:
+
+    1. (Dj) First q to address is predicting locations of species (I reckon we plot out these predicitions as a heatmap), 
+    maybe overlay on actual map?
+
+    2. (Dj) Could see if we could do image classification on species available (flora, fauna -> mammal, amphibian, reptile etc..) and then using our 
+    predicted speices distn. predict possible diets of different species? (might be quite difficult but a possible idea after tackling
+    initial questions)
+
+    3. (Dj) Could predict animals most affected by climate change? (identify regions most affected then identify animals in those regions.)
