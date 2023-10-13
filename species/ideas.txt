@@ -1,14 +1,30 @@
 Place to jot down ideas:
 
     1. (Dj) First q to address is predicting locations of species (I reckon we plot out these predicitions as a heatmap), 
-    maybe overlay on actual map?
+    maybe overlay on actual map? - geopandas seems to do this but I am not sure the availible maps would be appropiate
 
     2. (Dj) Could see if we could do image classification on species available (flora, fauna -> mammal, amphibian, reptile etc..) and then using our 
     predicted speices distn. predict possible diets of different species? (might be quite difficult but a possible idea after tackling
-    initial questions)
+    initial questions) - Not sure what data we have to do this
 
     3. (Dj) Could predict animals most affected by climate change? (identify regions most affected then identify animals in those regions.)
+    - Good idea, I would definetely try to make use of the "extra" climate data provided. I have tried to download the data, however all I 
+    seem to get are images? Will have to look into it more closely.
 
-    4. Learning how to use git with visual studio
+    4. (Mp) I think following the questions given by them is the best starting point, the data seems to be made for answering those questions
+    - Predicting location of species as Dj said in 1. I could also imagine that many species cluster together and so we could try to answer 
+    something like: Given I see X species, what other species am I likely to encounter? This question is similar to the initial one because if 
+    you predict where a species is, you could just say the other species in that region but I imagine that many places with similar climates will 
+    have similar species. As an example, I imagine that there are snakes in both South East Asia and the Amazonas in Brazil, maybe it is therefore
+    hard to predict where a snake will be, but you could say that if there is a snake, theres probably also frogs? Or whatever?
+
+    Things to do:
+
+    - Exploratory analysis: Most common species around world? Top 3 in different continents? Or top 3 in different lattitudes ranges if it
+    is not possible to group into continents? Places with more species? Also least common species...
+
+    - Data processing: Probably good to use PCA to get rid of irrelevant features, right? 
+
+    - Find way to turn lattitudes and longitudes to: Maps, Continent/Contry Classification etc...
 
     
