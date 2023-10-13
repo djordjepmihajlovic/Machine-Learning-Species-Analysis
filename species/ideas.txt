@@ -8,3 +8,7 @@ Place to jot down ideas:
     initial questions)
 
     3. (Dj) Could predict animals most affected by climate change? (identify regions most affected then identify animals in those regions.)
+
+    4. Learning how to use git with visual studio
+
+    
