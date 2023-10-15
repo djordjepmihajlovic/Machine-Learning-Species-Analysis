@@ -16,7 +16,7 @@ Place to jot down ideas:
     something like: Given I see X species, what other species am I likely to encounter? This question is similar to the initial one because if 
     you predict where a species is, you could just say the other species in that region but I imagine that many places with similar climates will 
     have similar species. As an example, I imagine that there are snakes in both South East Asia and the Amazonas in Brazil, maybe it is therefore
-    hard to predict where a snake will be, but you could say that if there is a snake, theres probably also frogs? Or whatever?
+    hard to predict where a snake will be, but you could say that if there is a snake, theres probably also frogs? Or whatever? - yea I agree 
 
     5. (Jr) We could try subdivide the species into groups, e.g. birds, insects, fungi... I think fitting every species into groups could be a challenge, maybe use something like https://www.ncbi.nlm.nih.gov/Taxonomy/Browser/wwwtax.cgi and divide by family? Assuming that's possible it could be used to refine the identification, e.g. I am at (lon, lat) and I saw an animal belonging to (group), what species could it be?
 
@@ -30,4 +30,8 @@ Place to jot down ideas:
     - Find way to turn lattitudes and longitudes to: Maps, Continent/Contry Classification etc...
       (Jr) I've uploaded locs.py (I think, still not entirely figured github out) that takes a latitude and longitude and gives you an address and the country which could be a starting point. Seems like the geocoding service has a 1000 request limit per day so that might be an issue, also it needs an email in the user_agent field
 
+
+    General notes:
+
+    - I've gitignored neural network stuff for the time being as we don't need it yet so code is a bit cleaner.
     

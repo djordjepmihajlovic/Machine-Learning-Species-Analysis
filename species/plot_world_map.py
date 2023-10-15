@@ -6,7 +6,7 @@ from geopandas import GeoDataFrame
 from shapely.geometry import Point
 import matplotlib.pyplot as plt
 
-data = np.load("Machine-Learning-Species-Analysis/species/species_train.npz")
+data = np.load("species_train.npz")
 
 train_locs = data['train_locs']
 train_ids = data['train_ids']
