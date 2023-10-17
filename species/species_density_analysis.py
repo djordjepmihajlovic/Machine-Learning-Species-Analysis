@@ -94,8 +94,8 @@ gdf_mini = GeoDataFrame(geometry=geometry_mini)
 
 world = gpd.read_file(gpd.datasets.get_path('naturalearth_lowres')) 
 ax = world.plot(figsize=(10, 6))
-gdf_maxi.plot(ax=ax, marker='o', color='b', markersize=5, label=f"{species_names[label_maxi]} ({label_maxi}), density: {float(sorted_species_density[0][0])}")
-gdf_mini.plot(ax=ax, marker='o', color='r', markersize=5, label=f"{species_names[label_mini]} ({label_mini}), density: {float(sorted_species_density[-1][0])}")
+gdf_maxi.plot(ax=ax, marker='o', color='b', markersize=5, label=f"{species_names[label_maxi]} ({label_maxi}), density: {float(sorted_species_density[-1][0])}")
+gdf_mini.plot(ax=ax, marker='o', color='r', markersize=5, label=f"{species_names[label_mini]} ({label_mini}), density: {float(sorted_species_density[0][0])}")
 
 plt.legend()
 plt.title(f"Population distribution of most vs. least densely populated species.")
