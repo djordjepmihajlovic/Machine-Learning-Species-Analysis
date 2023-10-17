@@ -57,15 +57,10 @@ with open('species_train_dist.csv', newline='') as f:
     reader = csv.reader(f)
     species_distn = list(reader)
 
-maxi = 0 # artificial initial values
-mini = 100
-for x in species_distn:
-    if float(x[0])>float(maxi):
-        maxi = x[0]
-        label_maxi = int(x[1])
-    elif float(x[0])<float(mini):
-        mini = x[0]
-        label_mini = int(x[1])
+sorted_species_distn = sorted(species_distn, key=lambda x: float(x[0]))
+
+label_mini = int(sorted_species_distn[0][1])
+label_maxi = int(sorted_species_distn[-1][1])
 
 print(f"The largest distributed species is: {species_names[label_maxi]}") # finds label and species with largest spread
 print(f"The smallest distributed species is: {species_names[label_mini]}") # ''' smallest '''
