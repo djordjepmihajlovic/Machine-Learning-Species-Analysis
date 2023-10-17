@@ -1,6 +1,5 @@
 import numpy as np
 import csv
-from geopy.geocoders import Nominatim
 from pathlib import Path
 import matplotlib.pyplot as plt
 import random
