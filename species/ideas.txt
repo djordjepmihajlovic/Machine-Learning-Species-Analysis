@@ -24,6 +24,15 @@ Place to jot down ideas:
 
     - Exploratory analysis: Most common species around world? Top 3 in different continents? Or top 3 in different lattitudes ranges if it
     is not possible to group into continents? Places with more species? Also least common species...
+    1. Broadness of population of species; species with largest distribution vs smallest distribution -Dj
+    2. Most common species vs least common -Mp
+    
+    
+    --> Determine coordinates for a given species --> 
+    1. Gaussian fit of data -Jr
+    2. Decision tree -Mp
+    3. Neural network -Dj 
+
 
     - Data processing: Probably good to use PCA to get rid of irrelevant features, right? 
 
