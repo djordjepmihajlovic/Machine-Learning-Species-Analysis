@@ -37,3 +37,6 @@ for index in sample_indices:
     predicted_species_id = predictions[index]
     print(i, '. predicted species name:', species_names[predicted_species_id])
     print(i, '. real species name:', species_names[real_species_id])
+
+#Results are not great, implementing a resampling or similar to get rid of the data
+#imbalance I think might help, as one of the species is being predicted multiple times
