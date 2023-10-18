@@ -1,6 +1,7 @@
 # for density run in terminal as: python species_distribution_analysis.py -d density
 # change arg as needed i.e. -d distribution
 
+import geopy.distance
 import numpy as np
 import csv
 from pathlib import Path
@@ -13,14 +14,11 @@ import math
 from argparse import ArgumentParser
 
 def distance(x1, y1, x2, y2): 
-    # need to alter this as distances n in longitude (xn) are not consistent (rather vary as a function of latitude)
-    # also sin(theta/2) function because longitude wraps round itself i.e. max longitude dist at x separation of 180
-    # may need further checking cause I think its wrong somewhere...
-    y1_ang = math.radians(y1) 
-    y2_ang = math.radians(y2)
-    x1_ang = math.radians(x1)
-    x2_ang = math.radians(x2)
-    return ((math.sin(0.5*(x2_ang-x1_ang))*((x2*math.cos(y2_ang))-(x1*math.cos(y1_ang))))**2 + (y2-y1)**2)**(0.5)
+    coords_1 = (x1, y1)
+    coords_2 = (x2, y2)
+    dist = geopy.distance.geodesic(coords_1, coords_2).km
+
+    return dist
 
 def get_params(): # runs chosen problem
     par = ArgumentParser()
@@ -55,9 +53,9 @@ def main():
             test_inds_pos = test_pos_inds[sp]  
             dist = []
             # note: some species have a lot more data than others!
-            # hence: going to artificially select a maximum of 500 data points to do this testing. imo should be enough
-            if len(test_inds_pos)>500:
-                test_inds_pos = random.sample(test_inds_pos, 500)
+            # hence: going to artificially select a maximum of 50 data points to do this testing. imo should be enough
+            if len(test_inds_pos)>50:
+                test_inds_pos = random.sample(test_inds_pos, 50)
             for x in test_inds_pos:
                 for y in test_inds_pos:
                     if x != y:
@@ -91,8 +89,8 @@ def main():
         label_mini = int(sorted_species_distn[0][1])
         label_maxi = int(sorted_species_distn[-1][1])
 
-        print(f"The largest distributed species is: {species_names[label_maxi]}") # finds label and species with largest spread
-        print(f"The smallest distributed species is: {species_names[label_mini]}") # ''' smallest '''
+        print(f"The largest distributed species is: {species_names[label_maxi]}, spanning: {float(sorted_species_distn[-1][0])}km") # finds label and species with largest spread
+        print(f"The smallest distributed species is: {species_names[label_mini]}, spanning: {float(sorted_species_distn[0][0])}km ") # ''' smallest '''
 
 
         test_inds_pos_maxi = test_pos_inds[label_maxi]  
@@ -109,8 +107,8 @@ def main():
 
         world = gpd.read_file(gpd.datasets.get_path('naturalearth_lowres')) 
         ax = world.plot(figsize=(10, 6))
-        gdf_maxi.plot(ax=ax, marker='o', color='b', markersize=5, label=f"{species_names[label_maxi]} ({label_maxi})")
-        gdf_mini.plot(ax=ax, marker='o', color='r', markersize=5, label=f"{species_names[label_mini]} ({label_mini})")
+        gdf_maxi.plot(ax=ax, marker='o', color='b', markersize=5, label=f"{species_names[label_maxi]} span: {float(sorted_species_distn[-1][0])}km")
+        gdf_mini.plot(ax=ax, marker='o', color='r', markersize=5, label=f"{species_names[label_mini]} span: {float(sorted_species_distn[0][0])}km")
 
         plt.legend()
         plt.title(f"Population distribution of most localized vs. most spread species.")
@@ -153,8 +151,8 @@ def main():
 
         world = gpd.read_file(gpd.datasets.get_path('naturalearth_lowres')) 
         ax = world.plot(figsize=(10, 6))
-        gdf_maxi.plot(ax=ax, marker='o', color='b', markersize=5, label=f"{species_names[label_maxi]} ({label_maxi}), density: {float(sorted_species_density[-1][0])}")
-        gdf_mini.plot(ax=ax, marker='o', color='r', markersize=5, label=f"{species_names[label_mini]} ({label_mini}), density: {float(sorted_species_density[0][0])}")
+        gdf_maxi.plot(ax=ax, marker='o', color='b', markersize=5, label=f"{species_names[label_maxi]} ({label_maxi}), density: {float(sorted_species_density[-1][0])} per km^2")
+        gdf_mini.plot(ax=ax, marker='o', color='r', markersize=5, label=f"{species_names[label_mini]} ({label_mini}), density: {float(sorted_species_density[0][0])} per km^2")
 
         plt.legend()
         plt.title(f"Population distribution of most vs. least densely populated species.")
