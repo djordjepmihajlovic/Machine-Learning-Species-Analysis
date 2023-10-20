@@ -24,7 +24,7 @@ Place to jot down ideas:
 
     - Exploratory analysis: Most common species around world? Top 3 in different continents? Or top 3 in different lattitudes ranges if it
     is not possible to group into continents? Places with more species? Also least common species...
-    1. Broadness of population of species; species with largest distribution vs smallest distribution -Dj
+    1. Broadness of population of species; species with largest distribution vs smallest distribution -Dj 
     2. Most common species vs least common -Mp
     
     

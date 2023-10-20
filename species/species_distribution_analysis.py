@@ -107,8 +107,8 @@ def main():
 
         world = gpd.read_file(gpd.datasets.get_path('naturalearth_lowres')) 
         ax = world.plot(figsize=(10, 6))
-        gdf_maxi.plot(ax=ax, marker='o', color='b', markersize=5, label=f"{species_names[label_maxi]} span: {float(sorted_species_distn[-1][0])}km")
-        gdf_mini.plot(ax=ax, marker='o', color='r', markersize=5, label=f"{species_names[label_mini]} span: {float(sorted_species_distn[0][0])}km")
+        gdf_maxi.plot(ax=ax, marker='o', color='b', markersize=5, label=f"{species_names[label_maxi]} span: {float(sorted_species_distn[-1][0])} km")
+        gdf_mini.plot(ax=ax, marker='o', color='r', markersize=5, label=f"{species_names[label_mini]} span: {float(sorted_species_distn[0][0])} km")
 
         plt.legend()
         plt.title(f"Population distribution of most localized vs. most spread species.")
@@ -133,6 +133,8 @@ def main():
         label_mini = int(sorted_species_density[0][1])
         label_maxi = int(sorted_species_density[-1][1])
 
+        print(len(test_pos_inds[int(label_maxi)]))
+
         print(f"The most densely populated species is: {species_names[label_maxi]}") # finds label and species with highest count per area
         print(f"The least densely populated species is: {species_names[label_mini]}") # ''' smallest '''
 
@@ -151,8 +153,8 @@ def main():
 
         world = gpd.read_file(gpd.datasets.get_path('naturalearth_lowres')) 
         ax = world.plot(figsize=(10, 6))
-        gdf_maxi.plot(ax=ax, marker='o', color='b', markersize=5, label=f"{species_names[label_maxi]} ({label_maxi}), density: {float(sorted_species_density[-1][0])} per km^2")
-        gdf_mini.plot(ax=ax, marker='o', color='r', markersize=5, label=f"{species_names[label_mini]} ({label_mini}), density: {float(sorted_species_density[0][0])} per km^2")
+        gdf_maxi.plot(ax=ax, marker='o', color='b', markersize=5, label=f"{species_names[label_maxi]} ({label_maxi}), occurence: {round(1/float(sorted_species_density[-1][0]), 2)} km²")
+        gdf_mini.plot(ax=ax, marker='o', color='r', markersize=5, label=f"{species_names[label_mini]} ({label_mini}), occurence: {round(1/float(sorted_species_density[0][0]), 2)} km²")
 
         plt.legend()
         plt.title(f"Population distribution of most vs. least densely populated species.")
