@@ -4,25 +4,37 @@ import random
 # load train data
 data = np.load('species/species_train.npz')
 ids = data['train_ids']
-classes = np.unique(ids)
 coords = np.array(list(zip(data['train_locs'][:,0], data['train_locs'][:,1]))) 
 species_names = dict(zip(data['taxon_ids'], data['taxon_names']))
 
+# uk bounding box
+ind1 = np.array(np.where(coords[:,1] >= -9.0))
+ind2 = np.array(np.where(coords[:,1] <= 2.01))
+ind3 = np.array(np.where(coords[:,0] >= 49.75))
+ind4 = np.array(np.where(coords[:,0] <= 61.01))
+uk_ind = np.intersect1d(ind1, np.intersect1d(ind2, np.intersect1d(ind3, ind4)))
+
+uk_coords = coords[uk_ind]
+uk_ids = ids[uk_ind]
+uk_classes = np.unique(uk_ids)
+
 # computes prior probability p(x|y=id)
 def prior_prob(id, lat, lon):
-    ind = np.where(ids == id)
+    ind = np.where(uk_ids == id)
     # take 50 random samples if more than 50 examples exist
     if len(ind) > 50:
         ind = random.sample(ind, 50)
 
-    x = coords[ind]
+    x = uk_coords[ind]
     x_test = np.array([lat,lon])
     N = len(x)
+
+    # if this species isn't present return a zero prior probability
     if N == 0:
         return 0
     
     # mle for mean vector
-    mu = np.array([np.sum(coords[0]), np.sum(coords[1])])/N
+    mu = np.array([np.sum(uk_coords[0]), np.sum(uk_coords[1])])/N
 
     # mle for cov matrix
     sig = np.array([[0.0,0.0],[0.0,0.0]])
@@ -42,7 +54,7 @@ def likelihood(id):
 # computes evidence term (sum of priors)
 def evidence(lat, lon):
     ev = 0
-    for c in classes:
+    for c in uk_classes:
         ev += prior_prob(c, lat, lon) * likelihood(c)
     return ev
 
@@ -56,15 +68,15 @@ def probability(id, lat, lon, ev):
 # returns list of species present at (lat,lon) sorted by probability
 def predict(lat, lon, ev):
     p = np.array([])
-    for c in classes:
+    for c in uk_classes:
         prob = probability(c, lat, lon, ev)
         p = np.append(p, prob)
     ind = np.argsort(p)
-    ranking = np.flip(classes[ind])
+    ranking = np.flip(uk_classes[ind])
     probabilities = np.flip(p[ind])
     return ranking, probabilities
 
-# coords of edinburgh city center
+# coords
 la = 55.953332
 lo = -3.189101
 ev = evidence(la, lo)
@@ -77,10 +89,3 @@ print('Top 3 Species:')
 print(species_names[prediction[0][0]])
 print(species_names[prediction[0][1]])
 print(species_names[prediction[0][2]])
-
-# this predicts the most common species in edinburgh is a snake native to portugal!
-# possibly due to the fact that the size of the uk is small relative to the rest of the world so the gaussian for the snake
-# "bleeds" over to the uk
-# try something new: trim the training data to only include uk and try again
-# bounding box: -9.0 < lon < 2.01, 49.75 < lat < 61.01
-# see file gaussian_model_uk.py
