@@ -7,7 +7,9 @@ from geopy.geocoders import Nominatim
 from geopy.extra.rate_limiter import RateLimiter
 import pycountry_convert as pc
 from typing import Tuple
-#import panda as pd
+import random
+import pandas as pd
+from collections import Counter
 
 
 def get_continent_name(continent_code: str) -> str:
@@ -66,44 +68,95 @@ for n in species_count:
         top_sp_list.append(i)
     i = i + 1
 
+
 train_inds_pos = []
-geometry = []
 
 #Code copied from plot_world_map 
-#j = 0
+
 for n in top_sp_list:
     train_inds_pos.append(np.where(train_ids == n)[0])
-    #geometry.append([Point(xy) for xy in zip(train_locs[train_inds_pos[j], 1], train_locs[train_inds_pos[j], 0])]) # gets list of (lat,lon) pairs
-    #j += 1
+    
 
-#print(train_locs[train_inds_pos[0][0]]) 
-#This is the first lat/lon of the first of the "most common species"
 
-#HAVE TO CONVERT THESE LAT/LON INTO CONTINENTS AND THEN CREATE A DATA FRAME SUCH THAT FOR EACH OF THE TRAIN_LOCS
-# THERE IS AN ASSOCIATED CONTINENT
+#The following code takes some time but it takes 5 random data points from each of the most common species and finds
+# its continent, with that information I want to find in which continent each of the most common species is found
+# and then compute the top 3. For this I need to create a data frame which contains the species ID and its continents.
+# Of those continents, count the most common and assign that continent to that id.
 
-latitude = train_locs[train_inds_pos[0][0]][0]
-longitude = train_locs[train_inds_pos[0][0]][1]
-continent = get_continent(latitude, longitude)
+species_df = pd.DataFrame(columns=['Species ID', 'Species Name', 'Continent'])
 
-###### FOR GETTING THE CONTINENT OF 1 DATA POINT THIS WORKED, NOW HAVE TO GET 2000*50 OF THEM, NOT SURE IF IT WILL
-# BE HAPPY ABOUT THAT... 
+i = 0
+for species_indices in train_inds_pos:
+    # Randomly select 5 indices from each species
+    train_inds_pos_sp = np.random.choice(species_indices, 5, replace=False)
+    species_idf = top_sp_list[i]
+    species_namef = species_names[top_sp_list[i]]
+    i += 1
+    continents = []
+    # Loop through the selected indices for the current species
+    for sample in train_inds_pos_sp:
+        lat = train_locs[sample][0]
+        lon = train_locs[sample][1]
+        continent = get_continent(lat, lon)
+        continents.append(continent)
+    continents_count = Counter(continents)
+    most_common_continent = continents_count.most_common(1)[0][0]
 
-continents = []
-k = 0
-while k < len(train_inds_pos[0]):
-    latitude = train_locs[train_inds_pos[0][k]][0]
-    longitude = train_locs[train_inds_pos[0][k]][1]
-    continent = get_continent(latitude, longitude)
-    continents.append([latitude, longitude, continent])
-    k += 1
-    if k > 20:
-        break
+    species_df = species_df.append({'Species ID': species_idf, 'Species Name': species_namef, 'Continent': most_common_continent}, ignore_index=True)
 
-#Got the continent for the first 20 datapoints of the first most common species, all of them in North America for
-#now which makes sense. I am guessing expanding this to 2000 points and 50 species will be problematic
-# Also having trouble with panda for some reason??
 
-#continents_df = pd.DataFrame(data, columns=['Latitude', 'Longitude', 'Continent'])
+print(species_df)
 
-print(continents)
+europe_species = species_df[species_df['Continent'] == 'Europe']['Species Name'].tolist()
+
+print("Most common species in Europe are:")
+for species in europe_species:
+    print(species)
+
+NA_species = species_df[species_df['Continent'] == 'North America']['Species Name'].tolist()
+
+print("Most common species in North America are:")
+for species in NA_species:
+    print(species)
+
+oceania_species = species_df[species_df['Continent'] == 'Oceania']['Species Name'].tolist()
+
+print("Most common species in Oceania are:")
+for species in oceania_species:
+    print(species)
+
+
+africa_species = species_df[species_df['Continent'] == 'Africa']['Species Name'].tolist()
+
+print("Most common species in Africa are:")
+for species in africa_species:
+    print(species)
+
+
+SA_species = species_df[species_df['Continent'] == 'South America']['Species Name'].tolist()
+
+print("Most common species in South America are:")
+for species in SA_species:
+    print(species)
+
+antarctica_species = species_df[species_df['Continent'] == 'Antarctica']['Species Name'].tolist()
+
+print("Most common species in Antarctica are:")
+for species in antarctica_species:
+    print(species)
+
+asia_species = species_df[species_df['Continent'] == 'Asia']['Species Name'].tolist()
+
+print("Most common species in Asia are:")
+for species in asia_species:
+    print(species)
+
+
+
+#### Didnt really get the most common species for each continent, more like the species in each continent
+#### with max number of counts, this gave me many species for North America and Europe, 4 species for Oceania,
+#### 2 for Africa, 1 for Asia and South America and non for Antarctica
+
+### The code takes quite a while to run
+
+
