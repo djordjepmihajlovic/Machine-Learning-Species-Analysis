@@ -157,6 +157,7 @@ for species in asia_species:
 #### with max number of counts, this gave me many species for North America and Europe, 4 species for Oceania,
 #### 2 for Africa, 1 for Asia and South America and non for Antarctica
 
-### The code takes quite a while to run
+### The code takes quite a while to run, would have to write the data frame into a new file or something 
+### But I forgot how to do that
 
 
