@@ -32,6 +32,27 @@ tree_classifier.fit(train_locs, train_ids)
 #Predictions
 predictions = tree_classifier.predict(test_locs)
 
+# Create a list to store valid test_ids and test_locs
+valid_test_ids = []
+valid_test_locs = []
+
+# Iterate through the indices and append valid test_ids/test_locs
+for index in range(len(test_locs)):
+    test_id = reverse_test_pos_inds.get(index)
+    if test_id is not None:  # Check if the value is not None (i.e., valid)
+        valid_test_ids.append(test_id)
+        valid_test_locs.append(test_locs[index])
+
+
+
+# Convert to a numpy array
+valid_test_ids = np.array(valid_test_ids)
+valid_test_locs = np.array(valid_test_locs)
+
+print('Decision tree classification Accuracy: ' + str(tree_classifier.score(valid_test_locs, valid_test_ids)))
+
+#Accuracy of 10-15% which is terrible, I think species with large extent predominate
+# Possible improvements: Look at more specific regions? What to do about data imbalance? (2000 vs 50 viewings)
 
 #Printing 10 random locations, the species in them and the prediction.
 sample_indices = random.sample(range(len(test_locs)), k=10)
