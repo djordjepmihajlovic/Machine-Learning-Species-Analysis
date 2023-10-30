@@ -16,14 +16,18 @@ class FFNNet(nn.Module):
         super().__init__() #basically runs nn.Module
         self.fc1 = nn.Linear(input_size, train_size) # self.fcx is x^th hidden layer of neural network
         self.fc2 = nn.Linear(train_size, train_size) 
-        self.fc3 = nn.Linear(train_size, output_size)
+        self.fc3 = nn.Linear(train_size, train_size)
+        self.fc4 = nn.Linear(train_size, output_size)
 
     def forward(self, x): # define order + activation function (F.relu() in this case ReLu in notes) + optimizer(multiclass=softmax(usually))
         x = F.relu(self.fc1(x))
         x = F.relu(self.fc2(x))
-        x = self.fc3(x)
+        x = F.relu(self.fc3(x))
+        x = self.fc4(x)
 
-        return F.log_softmax(x, dim=1)  # need to double check what this actually means 
+        return F.sigmoid(x)  # wont use softmax here! for multilabel classification we need sigmoid!
+    
+    # idea is a k-binary classification problem!
 
 
 
