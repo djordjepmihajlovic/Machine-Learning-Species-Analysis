@@ -83,6 +83,7 @@ for n in top_sp_list:
 # and then compute the top 3. For this I need to create a data frame which contains the species ID and its continents.
 # Of those continents, count the most common and assign that continent to that id.
 
+"""
 species_df = pd.DataFrame(columns=['Species ID', 'Species Name', 'Continent'])
 
 i = 0
@@ -105,7 +106,11 @@ for species_indices in train_inds_pos:
     species_df = species_df.append({'Species ID': species_idf, 'Species Name': species_namef, 'Continent': most_common_continent}, ignore_index=True)
 
 
-print(species_df)
+# Save the species_df DataFrame to a CSV file
+species_df.to_csv('species_continent_data.csv', index=False)
+
+"""
+species_df = pd.read_csv('species_continent_data.csv')
 
 europe_species = species_df[species_df['Continent'] == 'Europe']['Species Name'].tolist()
 
@@ -157,7 +162,5 @@ for species in asia_species:
 #### with max number of counts, this gave me many species for North America and Europe, 4 species for Oceania,
 #### 2 for Africa, 1 for Asia and South America and non for Antarctica
 
-### The code takes quite a while to run, would have to write the data frame into a new file or something 
-### But I forgot how to do that
 
 
