@@ -160,7 +160,8 @@ for species in asia_species:
 
 #### Didnt really get the most common species for each continent, more like the species in each continent
 #### with max number of counts, this gave me many species for North America and Europe, 4 species for Oceania,
-#### 2 for Africa, 1 for Asia and South America and non for Antarctica
+#### 2 for Africa, 1 for Asia and South America and non for Antarctica. COUNT THEM.. next, try to find the top 
+#### 3 for Africa, Asia and Antarctica? If there are any?
 
 
 
