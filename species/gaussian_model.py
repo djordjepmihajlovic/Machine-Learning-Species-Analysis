@@ -22,12 +22,12 @@ def prior_prob(id, lat, lon):
         return 0
     
     # mle for mean vector
-    mu = np.array([np.sum(coords[0]), np.sum(coords[1])])/N
+    mu = np.array([np.sum(x[:,0]), np.sum(x[:,1])])/N
 
     # mle for cov matrix
     sig = np.array([[0.0,0.0],[0.0,0.0]])
     for i in range(N):
-        sig += np.outer((x[i]-mu), (x[i]-mu))
+        sig += np.outer((x[i,:]-mu), (x[i,:]-mu))
     sig = sig/N
 
     # prior modelled by 2d gaussian
@@ -77,10 +77,3 @@ print('Top 3 Species:')
 print(species_names[prediction[0][0]])
 print(species_names[prediction[0][1]])
 print(species_names[prediction[0][2]])
-
-# this predicts the most common species in edinburgh is a snake native to portugal!
-# possibly due to the fact that the size of the uk is small relative to the rest of the world so the gaussian for the snake
-# "bleeds" over to the uk
-# try something new: trim the training data to only include uk and try again
-# bounding box: -9.0 < lon < 2.01, 49.75 < lat < 61.01
-# see file gaussian_model_uk.py
