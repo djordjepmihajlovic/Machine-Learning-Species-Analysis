@@ -1,5 +1,7 @@
 import numpy as np 
 import random
+from sklearn.model_selection import train_test_split
+from sklearn.metrics import f1_score
 
 # load train data
 data = np.load('species/species_train.npz')
@@ -7,6 +9,9 @@ ids = data['train_ids']
 classes = np.unique(ids)
 coords = np.array(list(zip(data['train_locs'][:,0], data['train_locs'][:,1]))) 
 species_names = dict(zip(data['taxon_ids'], data['taxon_names']))
+
+# split into train and test data
+X_train, X_test, y_train, y_test = train_test_split(coords, ids, train_size = 0.999, test_size=0.001)
 
 # computes prior probability p(x|y=id)
 def prior_prob(id, lat, lon):
@@ -68,7 +73,6 @@ def predict(lat, lon, ev):
 la = 55.953332
 lo = -3.189101
 ev = evidence(la, lo)
-
 prediction = predict(la, lo, ev)
 
 print('Most likely species at (' + str(la) + ',' + str(lo) + ') is ' + str(species_names[prediction[0][0]]) +
@@ -77,3 +81,13 @@ print('Top 3 Species:')
 print(species_names[prediction[0][0]])
 print(species_names[prediction[0][1]])
 print(species_names[prediction[0][2]])
+
+# find F1 score
+y_pred = np.zeros(len(y_test))
+print(len(y_test))
+for i in range(len(y_test)):
+    test_lat = X_test[i,0]
+    test_lon = X_test[i,1]
+    y_pred[i] = predict(test_lat, test_lon, evidence(test_lat, test_lon))[0][0]
+
+print('F1 score: ' + str(f1_score(y_test, y_pred, average = 'micro')))

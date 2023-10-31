@@ -2,6 +2,7 @@ import numpy as np
 import random
 from sklearn.neighbors import KNeighborsClassifier
 from sklearn.model_selection import train_test_split
+from sklearn.metrics import f1_score
 import matplotlib.pyplot as plt
 
 # necessary to get rid of annoying scipy warning
@@ -22,7 +23,12 @@ X_train, X_test, y_train, y_test = train_test_split(train_locs, train_ids, train
 knn = KNeighborsClassifier(n_neighbors = 8)
 knn.fit(X_train, y_train)
 
+# classification scores
 print('Classification Accuracy: ' + str(knn.score(X_test, y_test)))
+print('F1 score: ' + str(f1_score(y_test, knn.predict(X_test), average = 'micro')))
+# average = None gives the per class F1 score, may be useful
+# average = 'macro' takes the unweighted mean of all the F1 scores
+# average = 'micro' seems to be the same as knn.score()
 
 # coords of edinburgh city center
 la = 55.953332
