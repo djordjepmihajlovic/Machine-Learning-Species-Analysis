@@ -1,3 +1,4 @@
+# PyTorch and Numpy modules used to build network + datastructure
 import numpy as np
 from nn_models import FFNNet
 import torch
@@ -5,19 +6,23 @@ import torch.optim as optim
 from torch.utils.data import TensorDataset, DataLoader
 import torch.nn.functional as F
 
+# geopy used to decode lat/lon to named address
+from geopy.geocoders import Nominatim
+
 # at the heart of it, this is a multi label classification problem
 
 # set up data
 data_train = np.load('species_train.npz', mmap_mode="r")
 train_locs = data_train['train_locs']  # X --> features of training data as tensor for PyTorch
 train_ids = data_train['train_ids']  # y --> labels of training data as tensor for PyTorch
+species_names = dict(zip(data_train['taxon_ids'], data_train['taxon_names']))  # latin names of species 
 
 tensor_train_f = torch.Tensor(train_locs) # transform to torch tensor
 
 # preprocessing of data s.t. train_ids isn't random numbers rather list (0,1,2,3,4 -> no. unique ID's)
 labels = np.unique(data_train['train_ids'])  
 labels_vec = np.arange(0, len(labels))
-labels_dict = dict(zip(labels, labels_vec))
+labels_dict = dict(zip(labels, labels_vec)) # label + corresponding one-hot vector index
 
 # there is are features (locations) passed in multiple times with different labels, need to find ALL corresponding labels 
 # with associated feature for nn to work fully
@@ -118,10 +123,27 @@ with torch.no_grad():
 
 print("Accuracy: ", round(correct/total, 3))
 
-print(y[0])
-print(output[0])
+# print(torch.argmax(y[0]), torch.topk(output[0], 30))
 
-print(torch.argmax(y[0]), torch.topk(output[0], 30))
+X = torch.tensor([-1.286389, 36.817223]) # Nairobi, Kenya
+X = torch.tensor([-75.10052548639784, 123.35002912811925]) # Concordia, Antarctica
+X = torch.tensor([0.5162773075444781, 25.20450202335836]) # Kisangani, Congo
+X = torch.tensor([22.625950924673553, 97.30142582402296]) # Hsipaw, Myanmar
+X = torch.tensor([-3.0028115414379086, -59.995268536688606]) # Manauas, Brazil
 
+output = net(X.view(-1, 2))
+observations = torch.topk(output, 10)
+ch = observations[0].tolist()
+sp = observations[1].tolist()
+sp = sp[0]
+
+geolocator = Nominatim(user_agent="youremail@provider")
+location = geolocator.reverse("-3.0028115414379086, -59.995268536688606")
+
+found_sp = []
+for i,v in enumerate(sp):
+    found_sp.append(species_names[labels[v]])
+
+print(f"Top 10, most likely species to be observed at {location.address}: {found_sp}, with relative liklihood {ch}")
 
 
