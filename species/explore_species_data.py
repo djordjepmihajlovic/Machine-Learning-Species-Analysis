@@ -62,6 +62,19 @@ print('Average number of locations per species:  ', species_counts.mean()) #544
 print('Minimum number of locations for a species:', species_counts.min()) #50
 print('Maximum number of locations for a species:', species_counts.max()) #2000
 
+print('Number of test locations:'                 , test_locs.shape) #288122 locations
+
+
+total_elements = sum(len(sublist) for sublist in data_test['test_pos_inds'])
+
+# Step 2: Calculate the total number of sublists
+total_sublists = len(data_test['test_pos_inds'])
+
+# Step 3: Calculate the average
+average_elements_per_list = total_elements / total_sublists
+
+print("Average elements per list:", average_elements_per_list)
+
 
 # plot train and test data for a random species
 plt.close('all')
