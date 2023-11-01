@@ -115,11 +115,6 @@ tree_classifier = tree.DecisionTreeClassifier(min_samples_leaf= 2)
 ######Fitting######
 tree_classifier.fit(new_train_locs, new_train_ids)
 
-#print('number of classes is', tree_classifier.n_classes_) #500
-#print('number of features is', tree_classifier.max_features_) #2
-#print('number of features fit is', tree_classifier.n_features_in_) #2
-#print('number of outputs is', tree_classifier.n_outputs_) #1
-
 
 ######Predictions######
 predictions = tree_classifier.predict(test_locs)
