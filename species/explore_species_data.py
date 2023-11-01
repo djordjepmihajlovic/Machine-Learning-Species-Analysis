@@ -55,12 +55,12 @@ test_pos_inds = dict(zip(data_test['taxon_ids'], data_test['test_pos_inds']))
 
 # data stats
 print('Train Stats:')
-print('Number of species in train set:           ', len(species))
-print('Number of train locations:                ', train_locs.shape[0])
+print('Number of species in train set:           ', len(species)) #500
+print('Number of train locations:                ', train_locs.shape[0]) #272037
 _, species_counts = np.unique(train_ids, return_counts=True)
-print('Average number of locations per species:  ', species_counts.mean())
-print('Minimum number of locations for a species:', species_counts.min())
-print('Maximum number of locations for a species:', species_counts.max())
+print('Average number of locations per species:  ', species_counts.mean()) #544
+print('Minimum number of locations for a species:', species_counts.min()) #50
+print('Maximum number of locations for a species:', species_counts.max()) #2000
 
 
 # plot train and test data for a random species

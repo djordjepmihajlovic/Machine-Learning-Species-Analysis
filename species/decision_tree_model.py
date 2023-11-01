@@ -6,6 +6,8 @@ Implementation of the Decision tree model
 from sklearn import tree
 import numpy as np
 import random
+import matplotlib.pyplot as plt
+from sklearn.utils.class_weight import compute_class_weight
 
 #Load data
 data = np.load('species_train.npz')
@@ -18,29 +20,30 @@ data_test = np.load('species_test.npz', allow_pickle=True)
 test_locs = data_test['test_locs']
 test_pos_inds = dict(zip(data_test['taxon_ids'], data_test['test_pos_inds'])) 
 
+##### The next 30 lines take care of the reverse dictionary with added 0s for empty locations ######
 
 reverse_test_pos_inds = {} #Reversing dictionary so that you can check species at given location.
 
 for species_id, indices in test_pos_inds.items():
     for index in indices:
-        reverse_test_pos_inds[index] = []
+        reverse_test_pos_inds[index] = [] #Creates list at each index
         
 
 for species_id, indices in test_pos_inds.items():
     for index in indices:
-        reverse_test_pos_inds[index].append(species_id)
+        reverse_test_pos_inds[index].append(species_id) #Appends species id to lists created earlier
 
 
 indices = range(len(test_locs))
-indices_0 = []
+indices_0 = [] #List for indices/locations with no species. Uses following loop to fill list.
 
 for index in indices:
     if index not in reverse_test_pos_inds.keys():
         indices_0.append(index)
         
-test_pos_inds[0] = indices_0
+test_pos_inds[0] = indices_0 #Modifies test_pos_inds dictionary to include indices with no species and sets them to key "0"
 
-reverse_test_pos_inds = {} #Reversing dictionary again so that you have the none species as 0
+reverse_test_pos_inds = {} #Reversing dictionary again so that you have the locations with no species referencing a 0.
 
 for species_id, indices in test_pos_inds.items():
     for index in indices:
@@ -50,33 +53,102 @@ for species_id, indices in test_pos_inds.items():
 for species_id, indices in test_pos_inds.items():
     for index in indices:
         reverse_test_pos_inds[index].append(species_id)
-        
+
+############################
+
+#1st attempt to balance dataset, I am going to reduce the number of datapoints for each species to 500
+#This is not the best method, should use a sample weighing method but unsure how to do this right now.
+#Finding indices to remove and then removing them from train ids and train locs
+#Find ids with more than 500 locations, find the difference between n(the number of locs) and 500 d = n - 500
+#Get a sample of d indices and remove them from train ids and train locs. This is the idea.
+
+species_count = np.bincount(train_ids) # Returns an array with 1368520 entries (which is the biggest id), each entry is the number of
+# locations for the id/index 
+
+
+
+sp_list_a = [] #id list of species with more than 500 location
+sp_list_b = [] #id list for species below 500 locations
+
+i = 0
+for n in species_count:
+    if n >= 500: #around species_counts.mean():
+        sp_list_a.append(i) # i is the id of the species/because index = id
+    elif n != 0:
+        sp_list_b.append(i)
+    i = i + 1
+
+train_inds_pos_a = [] #List with indices of train_ids/train_locs of the above 500 species. Created in the following loop.
+
+for species_id in sp_list_a:
+    train_inds_pos_a.append(np.where(train_ids == species_id)[0])
+
+train_inds_pos_b= [] #List with indices of train_ids/train_locs of the below 500 species.
+
+for species_id in sp_list_b:
+    train_inds_pos_b.append(np.where(train_ids == species_id)[0])
+
+wanted_indices = [] # Wanted indices, if more than 500 choose 500 best, if not take all datapoints
+
+
+for sp_indices in train_inds_pos_a:
+    sp_choice = np.random.choice(sp_indices, 500, replace = False)
+    wanted_indices.append(sp_choice)
+
+for sp_indices in train_inds_pos_b:
+    wanted_indices.append(sp_indices)
+
+flat_wanted_indices = [item for sublist in wanted_indices for item in sublist]
+
+new_train_locs = train_locs[flat_wanted_indices] ##What I wanted, new train locs and train ids with a max of 500 per specie
+new_train_ids = train_ids[flat_wanted_indices]
+
+#Using these new locs and ids I got an improvement on the accuracy of around 2% which is not very significant but it is noteworthy
+# because I have REMOVED data and it has IMPROVED accuracy... There are better methods to explore the data imbalance we should look into.
 
 ######Decision Tree model#######
-tree_classifier = tree.DecisionTreeClassifier()
+tree_classifier = tree.DecisionTreeClassifier(min_samples_leaf= 2)
+
+##### Should I use a min sample leaf? Best Results so far (small sample) is using minimum of 2 per leaf, not massive change.
+##### Using class_weight = "balanced" made the model a little worst actually, maybe it can be weighed properly using another method.
 
 ######Fitting######
-tree_classifier.fit(train_locs, train_ids)
+tree_classifier.fit(new_train_locs, new_train_ids)
+
+#print('number of classes is', tree_classifier.n_classes_) #500
+#print('number of features is', tree_classifier.max_features_) #2
+#print('number of features fit is', tree_classifier.n_features_in_) #2
+#print('number of outputs is', tree_classifier.n_outputs_) #1
+
 
 ######Predictions######
 predictions = tree_classifier.predict(test_locs)
 
-test_ids = []
+test_ids = [] #Uses the new reverse dictionary to create set ids to each of the test locations
 for index in range(len(test_locs)):
     test_id = reverse_test_pos_inds.get(index)
     test_ids.append(test_id)
 
-#Plotting tree?????
-#tree.plot_tree(tree_classifier)
+"""
+IGNORE
+Plotting tree?????
+tree.plot_tree(tree_classifier)
+
+fig = plt.figure(figsize=(25,20))
+_ = tree.plot_tree(tree_classifier, max_depth = 1, filled=True)
+fig.savefig("decistion_tree.png")
+"""
 
 ######Accuracy######
-#Accuracy method cant be used because each test_loc might have multiple species in it.. hence the method cant compare how 
+#Score method cant be used because each test_loc might have multiple species in it. Hence the method cant compare how 
 #good the decision tree is.
 #print('Decision tree classification Accuracy: ' + str(tree_classifier.score(test_locs, test_ids)))
+#Is there another method???
 
+"""
+Commented out because it is irrelevant, but it takes 10 random locations and checks whether or not predicted 
+specie is in that location.
 
-
-#Printing 10 random locations, the species in them and the prediction.
 sample_indices = random.sample(range(len(test_locs)),k=10)
 
 i = 0
@@ -102,6 +174,7 @@ for index in sample_indices:
         print(i, 'prediction is correct')
     else:
         print(i, 'prediction is wrong')
+"""
 
 #Second try at accuracy:
 j = 0
@@ -131,10 +204,11 @@ accuracy = j/(len(test_locs)-len(indices_0))*100
 #predicted specie is there.
 
 print(accuracy)
-#Results are not great, I get around 54% accuracy
+#Results are not great, I get around 54% accuracy - Increased to around 56-57% using an "in-house" data balancing.
 #Implementing a resampling or similar to get rid of the data imbalance I think might help
 
 """
+Usually predicts the Turdus Viscivorus species in this location.
 # coords of edinburgh city center
 la = 55.953332
 lo = -3.189101
