@@ -2,6 +2,8 @@
 I want to create a dataframe which include the most prominent continent for all 500 species.
 This is either not working or taking too long, dont get an error but I dont get a dataframe either
 Adding continent as a 'feature' could be useful? Maybe? Even if the information isnt technically new.
+
+Need to revise the code becuase i tried copying and pasting but it hasnt worked.. will do that soon
 """
 
 
