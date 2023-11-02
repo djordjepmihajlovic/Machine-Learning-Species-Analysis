@@ -107,7 +107,7 @@ new_train_ids = train_ids[flat_wanted_indices]
 # because I have REMOVED data and it has IMPROVED accuracy... There are better methods to explore the data imbalance we should look into.
 
 ######Decision Tree model#######
-tree_classifier = tree.DecisionTreeClassifier(min_samples_leaf= 5) #SHOULD LOOP THROUGH DIFFERENT LEAF NUMBERS TO CHECK BEST RESULTS!
+tree_classifier = tree.DecisionTreeClassifier(min_samples_leaf= 15) #SHOULD LOOP THROUGH DIFFERENT LEAF NUMBERS TO CHECK BEST RESULTS!
 
 ##### Should I use a min sample leaf? Best Results so far (small sample) is using minimum of 2 per leaf, not massive change.
 ##### Using class_weight = "balanced" made the model a little worst actually, maybe it can be weighed properly using another method.
@@ -202,6 +202,8 @@ print(accuracy)
 #Results are not great, I get around 54% accuracy - Increased to around 56-57% using an "in-house" data balancing.
 #Implementing a resampling or similar to get rid of the data imbalance I think might help
 
+#print(tree_classifier.predict_proba([test_locs[1]])[0])
+
 """
 Attempt at predicting different number of species per location depending on the number of species 
 in the testing location. Unsuccesful because decision predicts one species per location basically.
@@ -211,7 +213,7 @@ Could try to modify depth / leaf size to change this? But accuracy might decreas
 probs = tree_classifier.predict_proba(test_locs)
 top_n_species = np.argsort(-probs, axis=1)[:, :3]
 #print(top_n_species.shape)
-print(tree_classifier.predict_proba([test_locs[0]])[0])
+
 
 for index in range(len(test_locs)):
     real_species_ids = reverse_test_pos_inds.get(index)
