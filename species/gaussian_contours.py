@@ -38,7 +38,6 @@ for i in range(n_gridpoints):
         pvals[i,j] = (1/(2* np.pi * np.linalg.det(sig))) * np.exp(-0.5 * np.dot(([lats[i],longs[j]]-mu), np.matmul(np.linalg.inv(sig), ([lats[i],longs[j]]-mu))))
 
 X, Y = np.meshgrid(longs, lats)
-plt.figure(dpi=(150))
 world = gpd.read_file(gpd.datasets.get_path('naturalearth_lowres')) 
 ax = world.plot(figsize=(10, 6))
 ax.set_title(str(species_names[id]))
