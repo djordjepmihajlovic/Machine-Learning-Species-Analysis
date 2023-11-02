@@ -107,7 +107,7 @@ new_train_ids = train_ids[flat_wanted_indices]
 # because I have REMOVED data and it has IMPROVED accuracy... There are better methods to explore the data imbalance we should look into.
 
 ######Decision Tree model#######
-tree_classifier = tree.DecisionTreeClassifier(min_samples_leaf= 2)
+tree_classifier = tree.DecisionTreeClassifier(min_samples_leaf= 2) #SHOULD LOOP THROUGH DIFFERENT LEAF NUMBERS TO CHECK BEST RESULTS!
 
 ##### Should I use a min sample leaf? Best Results so far (small sample) is using minimum of 2 per leaf, not massive change.
 ##### Using class_weight = "balanced" made the model a little worst actually, maybe it can be weighed properly using another method.
