@@ -60,24 +60,25 @@ species = data_train['taxon_ids']      # list of species IDe. Note these do not 
 
 data_test = np.load('species_test.npz', allow_pickle=True) 
 test_locs = data_test['test_locs']
-test_pos_inds = dict(zip(data_test['taxon_ids'], data_test['test_pos_inds']))    
+test_pos_inds = dict(zip(data_test['taxon_ids'], data_test['test_pos_inds']))   
 
-reverse_test_pos_inds = {} # reversing dictionary -> species at given location. (Thanks Miguel)
+############
 
-for species_id, indices in test_pos_inds.items():
-    for index in indices:
-        reverse_test_pos_inds[index] = species_id
+# returns ID's of species + associated test_loc index at which observed
 
-# returns index + ID's of species at index
+#############
 
 # one-hot encoding for test set
 test_labels = [[0]*len(labels_vec)]*len(test_locs) # make list of labels for test data
-for index, species_id in reverse_test_pos_inds.items():
+for species_id, index in test_pos_inds.items(): # species ids in dict
     base = [0]*len(labels_vec) # one-hot vector (hopefully same size)
     point = labels_dict[species_id]
     code = labels_vec.tolist().index(point)
     base[code] = 1
-    test_labels[index] = base
+
+    for i in index:
+        test_labels[i] = base
+
 
 tensor_test_f = torch.Tensor(test_locs) # transform to torch tensor
 tensor_test_l = torch.Tensor(test_labels).type(torch.float) # note: this is one vector label per coord
@@ -92,7 +93,7 @@ net = FFNNet(input_size = 2, train_size = 100, output_size = (len(labels)) )  # 
 # # # loss and optimization --> type of optimizer (Adam)
 
 optimizer = optim.Adam(net.parameters(), lr = 0.001) # learning rate = size of steps to take, alter as see fit (0.001 is good)
-EPOCHS = 20  # defined no. of epochs, can change probably don't need too many (10 is good)
+EPOCHS = 15  # defined no. of epochs, can change probably don't need too many (15 is good)
 
 for epoch in range(EPOCHS):
     for data in train_loader:
@@ -123,13 +124,20 @@ with torch.no_grad():
         X, y = data
         output = net(X.view(-1, 2))
         for idx, i in enumerate(output):
-            observations = torch.topk(i, 1)
-            for j in observations[1]:
-                if j == torch.argmax(y[idx]):
-                    correct += 1
+            positive_idx = torch.argmax(y[idx])
+            if torch.max(y[idx]) == 0:
+                positive_idx = []
+            observations = torch.topk(i, 20)
+            if observations[0][0] <= 0.01:
+                correct +=1
+            else:
+                for j in observations[1]:
+                    if j in positive_idx:
+                        correct += 1
             total +=1
+            
 
-print("Accuracy: ", round(correct/total, 3))
+print("Accuracy: ", round(correct/total, 3)*100, "%")
 
 # print(torch.argmax(y[0]), torch.topk(output[0], 30))
 
@@ -161,7 +169,7 @@ print(f"Top 10, most likely species to be observed at {location.address}: {found
 x = np.linspace(-180, 180, 100)
 y = np.linspace(-90, 90, 100)
 heatmap = np.zeros((len(y), len(x)))
-sp_iden = 12716 
+sp_iden =  12716
 sp_idx = list(labels).index(sp_iden)
 
 for idx, i in enumerate(x):
@@ -180,6 +188,5 @@ ax.set_title(str(species_names[sp_iden]))
 cs = ax.contourf(X, Y, heatmap, levels = np.linspace(10**(-10), np.max(heatmap), 10), alpha = 0.5)
 ax.clabel(cs, inline = True)
 plt.show() 
-
 
 # currently, model is good at placing localized species but bad at placing species with two distributions
