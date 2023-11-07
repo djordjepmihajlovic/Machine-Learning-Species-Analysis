@@ -1,6 +1,6 @@
 # PyTorch and Numpy modules used to build network + datastructure
 import numpy as np
-from nn_models import FFNNet
+from nn_models import *
 import torch
 import torch.optim as optim
 from torch.utils.data import TensorDataset, DataLoader
@@ -52,7 +52,13 @@ for idx, v in enumerate(train_ids): # idx is index, v is element
 train_labels = torch.Tensor(train_labels).type(torch.float) # note: this is one vector label per coord
 train_set = TensorDataset(tensor_train_f,train_labels) 
 
-train_loader = DataLoader(train_set, batch_size=100, shuffle=True)
+train_size = int(0.9*len(train_set))
+val_size = len(train_set) - train_size
+
+train, val = torch.utils.data.random_split(train_set, [train_size, val_size])
+
+train_loader = DataLoader(train, batch_size=100, shuffle=True)
+val_loader = DataLoader(val, batch_size=100, shuffle=True)
 
 # ** test set **
 
@@ -88,9 +94,7 @@ test_loader = DataLoader(test_set, batch_size=100, shuffle=True)
 
 # # # 
 
-net = FFNNet(input_size = 2, train_size = 100, output_size = (len(labels)) )  # pulls in defined FFNN from models.py
-
-# # # loss and optimization --> type of optimizer (Adam)
+net = FFNNet(input_size = 2, train_size = 100, output_size = (len(labels)))  # pulls in defined FFNN from models.py
 
 optimizer = optim.Adam(net.parameters(), lr = 0.001) # learning rate = size of steps to take, alter as see fit (0.001 is good)
 EPOCHS = 15  # defined no. of epochs, can change probably don't need too many (15 is good)
@@ -107,8 +111,6 @@ for epoch in range(EPOCHS):
         optimizer.step() # adjust weights
 
         print(loss)
-        
-    print(epoch)
 
 # ** model accuracy **
 
@@ -169,7 +171,7 @@ print(f"Top 10, most likely species to be observed at {location.address}: {found
 x = np.linspace(-180, 180, 100)
 y = np.linspace(-90, 90, 100)
 heatmap = np.zeros((len(y), len(x)))
-sp_iden =  12716
+sp_iden =  12716 # turdus merulus
 sp_idx = list(labels).index(sp_iden)
 
 for idx, i in enumerate(x):

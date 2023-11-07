@@ -12,6 +12,9 @@ from geopandas import GeoDataFrame
 from shapely.geometry import Point
 import math
 from argparse import ArgumentParser
+import pandas as pd
+import seaborn as sns
+from pandas.plotting import table
 
 def distance(x1, y1, x2, y2): 
     coords_1 = (x1, y1)
@@ -38,7 +41,10 @@ def main():
     # loading test data 
     data_test = np.load('species_test.npz', allow_pickle=True)
     test_locs = data_test['test_locs']
-    test_pos_inds = dict(zip(data_test['taxon_ids'], data_test['test_pos_inds']))   
+    test_pos_inds = dict(zip(data_test['taxon_ids'], data_test['test_pos_inds']))  
+
+    # loading train_extra data
+    data_extra = np.load('species_train_extra.npz',) 
 
     species_train_dist = Path("species_train_dist.csv")
     species_train_dense = Path("species_train_dense.csv")
@@ -159,6 +165,71 @@ def main():
         plt.legend()
         plt.title(f"Population distribution of most vs. least densely populated species.")
         plt.show()
+
+    elif d == "heatmap":
+
+        positive_index = data_test['test_pos_inds']
+        present = []
+
+        for idx, i in enumerate(positive_index):
+            for j in i:
+                if j not in present:
+                    present.append(j)
+            print(idx)
+
+        test_locs_with_species = [j for i, j in enumerate(test_locs) if i in present]
+
+        df = pd.DataFrame(test_locs_with_species, columns=["Latitude", "Longitude"])
+
+        mean_latitude = df['Latitude'].mean()
+        mean_longitude = df['Longitude'].mean()
+
+        joint_plot = sns.jointplot(data = df, x= 'Longitude', y = 'Latitude', kind = 'hist', marginal_kws=dict(bins=20), bins=20)
+        joint_plot.ax_joint.scatter(mean_longitude, mean_latitude, color='red', marker='X', label='Mean')
+
+        joint_plot.ax_joint.legend()
+        plt.savefig('/Users/djordjemihajlovic/Desktop/Theoretical Physics/Group Projects/AML Group Project/AML_GP/species/hist_test.png')
+        plt.show()
+
+    elif d == "describe":
+
+        df_train = pd.DataFrame(train_locs, columns=["Latitude", "Longitude"])
+        df_test = pd.DataFrame(test_locs, columns=["Latitude", "Longitude"])
+        describe_train = df_train.describe()
+        fig, ax = plt.subplots(figsize=(8, 4))
+        ax.axis('off')
+        table(ax, describe_train, loc='center', colWidths=[0.2, 0.2, 0.2, 0.2])
+
+        plt.show()
+
+    elif d == "species":
+
+        species_diff = []
+        print(data_test["taxon_ids"])
+        print(data["taxon_ids"])
+
+        for i in data_test["taxon_ids"]:
+            if i not in data["taxon_ids"]:
+                species_diff.append(i)
+
+        if species_diff == []:
+            print("Species set is the same!")
+
+        x = [1, 2, 3, 4, 5, 6, 7, 8, 9] 
+        y = [4, 5, 6, 6, 4 ,2, 1, 6, 9]
+
+        sns.barplot(x = x, y = y)
+        plt.xlabel("metric")
+        plt.ylabel("accuracy")
+        plt.show()
+
+    elif d == "extra":
+
+        # just for seeing what is in species_train_extra - its same as species_train just with new species (not in test)
+
+        train_ids = data_extra["train_locs"]
+        print(train_ids[0:5])
+
 
 
 
