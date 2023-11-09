@@ -107,7 +107,7 @@ new_train_ids = train_ids[flat_wanted_indices]
 # because I have REMOVED data and it has IMPROVED accuracy... There are better methods to explore the data imbalance we should look into.
 
 ######Decision Tree model#######
-tree_classifier = tree.DecisionTreeClassifier(min_samples_leaf= 15) #SHOULD LOOP THROUGH DIFFERENT LEAF NUMBERS TO CHECK BEST RESULTS!
+tree_classifier = tree.DecisionTreeClassifier(min_samples_leaf= 2) #SHOULD LOOP THROUGH DIFFERENT LEAF NUMBERS TO CHECK BEST RESULTS!
 
 ##### Should I use a min sample leaf? Best Results so far (small sample) is using minimum of 2 per leaf, not massive change.
 ##### Using class_weight = "balanced" made the model a little worst actually, maybe it can be weighed properly using another method.
@@ -239,3 +239,52 @@ la = 55.953332
 lo = -3.189101
 print(species_names[tree_classifier.predict([[la,lo]])[0]])
 """
+
+
+
+#Accuracy for a specie: 12716 Turdus Merulus
+
+id = 12716
+tp = 0
+tn = 0
+fn = 0
+fp = 0
+for i in range(len(test_locs)):
+    if id in test_ids[i] and predictions[i] == id:
+        tp += 1
+    elif id in test_ids[i] and predictions[i] != id:
+        fn += 1
+    elif id not in test_ids[i] and predictions[i] == id:
+        fp += 1
+    elif id not in test_ids[i] and predictions[i] != id:
+        tn += 1
+        
+print('True positive:', tp)
+print('True negative:', tn)
+print('False positive:', fp)
+print('False negative:', fn)
+
+tp = 0
+tn = 0
+fn = 0
+fp = 0
+
+#"""
+for id in species:
+    for i in range(len(test_locs)):
+        if id in test_ids[i] and predictions[i] == id:
+            tp += 1
+        elif id in test_ids[i] and predictions[i] != id:
+            fn += 1
+        elif id not in test_ids[i] and predictions[i] == id:
+            fp += 1
+        elif id not in test_ids[i] and predictions[i] != id:
+            tn += 1
+"""
+
+"""
+print('True positive:', tp)
+print('True negative:', tn)
+print('False positive:', fp)
+print('False negative:', fn)
+
