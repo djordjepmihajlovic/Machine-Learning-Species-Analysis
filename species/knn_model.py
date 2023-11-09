@@ -1,9 +1,21 @@
 import numpy as np 
-import random
 from sklearn.neighbors import KNeighborsClassifier
-from sklearn.model_selection import train_test_split
-from sklearn.metrics import f1_score
 import matplotlib.pyplot as plt
+from sklearn.metrics import confusion_matrix
+import seaborn as sns
+import matplotlib.pyplot as plt
+
+def plot_confusion_matrix(cm, classes=None, title='Confusion matrix'):
+    """Plots a confusion matrix."""
+    if classes is not None:
+        sns.heatmap(cm, xticklabels=classes, yticklabels=classes, vmin=0., vmax=1., annot=True)
+    else:
+        sns.heatmap(cm, vmin=0., vmax=1.)
+    plt.title(title)
+    plt.ylabel('True label')
+    plt.xlabel('Predicted label')
+    #plt.savefig('cm_turdus.png')
+    plt.show()
 
 # necessary to get rid of annoying scipy warning
 from warnings import simplefilter
@@ -15,25 +27,50 @@ data = np.load('species/species_train.npz')
 train_locs = data['train_locs']
 train_ids = data['train_ids']
 species = data['taxon_ids']      
-species_names = dict(zip(data['taxon_ids'], data['taxon_names']))   
+species_names = dict(zip(data['taxon_ids'], data['taxon_names'])) 
 
-# split into train and test data
-X_train, X_test, y_train, y_test = train_test_split(train_locs, train_ids, train_size = 0.9, test_size=0.1)
+# test data
+data_test = np.load('species/species_test.npz', allow_pickle=True) 
+test_locs = data_test['test_locs']
+test_pos_inds = dict(zip(data_test['taxon_ids'], data_test['test_pos_inds']))
 
 # k nearest neighbours classifier
 knn = KNeighborsClassifier(n_neighbors = 8)
-knn.fit(X_train, y_train)
+knn.fit(train_locs, train_ids)
 
-# classification scores
-print('Classification Accuracy: ' + str(knn.score(X_test, y_test)))
-print('F1 score micro: ' + str(f1_score(y_test, knn.predict(X_test), average = 'micro')))
-#print('F1 score macro: ' + str(f1_score(y_test, knn.predict(X_test), average = 'macro')))
-#print('F1 score None: ' + str(f1_score(y_test, knn.predict(X_test), average = None)))
-# average = None gives the per class F1 score, may be useful
-# average = 'macro' takes the unweighted mean of all the F1 scores
-# average = 'micro' seems to be the same as knn.score()
-
+"""
 # coords of edinburgh city center
 la = 55.953332
 lo = -3.189101
 print(species_names[knn.predict([[la,lo]])[0]])
+"""
+id_test = 12716
+pos_inds = test_pos_inds[id_test]
+true = np.zeros(len(test_locs))
+true[pos_inds] = 1 
+
+pred = knn.predict(test_locs)
+tp = 0
+fp = 0
+tn = 0
+fn = 0
+for i in range(len(pred)):
+    if pred[i] == id_test:
+        pred[i] = 1
+        if (pred[i] == true[i]):
+            tp += 1
+        else:
+            fp += 1
+    else:
+        pred[i] = 0
+        if (pred[i] == true[i]):
+            tn += 1
+        else:
+            fn += 1
+
+cm = confusion_matrix(true, pred)
+print(cm)
+print(tp)
+print(fn)
+print(fp)
+print(tn)
