@@ -72,7 +72,7 @@ sp_list_b = [] #id list for species below 500 locations
 
 i = 0
 for n in species_count:
-    if n >= 500: #around species_counts.mean():
+    if n > 500: #around species_counts.mean(): 
         sp_list_a.append(i) # i is the id of the species/because index = id
     elif n != 0:
         sp_list_b.append(i)
@@ -92,7 +92,7 @@ wanted_indices = [] # Wanted indices, if more than 500 choose 500 best, if not t
 
 
 for sp_indices in train_inds_pos_a:
-    sp_choice = np.random.choice(sp_indices, 500, replace = False)
+    sp_choice = np.random.choice(sp_indices, 500, replace = False) #ALSO-500 HERE
     wanted_indices.append(sp_choice)
 
 for sp_indices in train_inds_pos_b:
@@ -103,18 +103,19 @@ flat_wanted_indices = [item for sublist in wanted_indices for item in sublist]
 new_train_locs = train_locs[flat_wanted_indices] ##What I wanted, new train locs and train ids with a max of 500 per specie
 new_train_ids = train_ids[flat_wanted_indices]
 
+
 #Using these new locs and ids I got an improvement on the accuracy of around 2% which is not very significant but it is noteworthy
 # because I have REMOVED data and it has IMPROVED accuracy... There are better methods to explore the data imbalance we should look into.
 
 ######Decision Tree model#######
-tree_classifier = tree.DecisionTreeClassifier(min_samples_leaf= 2) #SHOULD LOOP THROUGH DIFFERENT LEAF NUMBERS TO CHECK BEST RESULTS!
+tree_classifier = tree.DecisionTreeClassifier(min_samples_leaf= 25)#, class_weight='balanced') #SHOULD LOOP THROUGH DIFFERENT LEAF NUMBERS TO CHECK BEST RESULTS!
 
 ##### Should I use a min sample leaf? Best Results so far (small sample) is using minimum of 2 per leaf, not massive change.
 ##### Using class_weight = "balanced" made the model a little worst actually, maybe it can be weighed properly using another method.
 
 ######Fitting######
 tree_classifier.fit(new_train_locs, new_train_ids)
-
+#tree_classifier.fit(train_locs, train_ids) #Have added class_weight = 'balanced', could be better than reducing "by force"
 
 ######Predictions######
 predictions = tree_classifier.predict(test_locs)
@@ -241,7 +242,7 @@ print(species_names[tree_classifier.predict([[la,lo]])[0]])
 """
 
 
-
+"""
 #Accuracy for a specie: 12716 Turdus Merulus
 
 id = 12716
@@ -269,7 +270,6 @@ tn = 0
 fn = 0
 fp = 0
 
-#"""
 for id in species:
     for i in range(len(test_locs)):
         if id in test_ids[i] and predictions[i] == id:
@@ -280,11 +280,10 @@ for id in species:
             fp += 1
         elif id not in test_ids[i] and predictions[i] != id:
             tn += 1
-"""
+
+print('Total True positive:', tp)
+print('Total True negative:', tn)
+print('Total False positive:', fp)
+print('Total False negative:', fn)
 
 """
-print('True positive:', tp)
-print('True negative:', tn)
-print('False positive:', fp)
-print('False negative:', fn)
-
