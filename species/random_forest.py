@@ -10,6 +10,9 @@ import matplotlib.pyplot as plt
 from sklearn.metrics import confusion_matrix
 import joblib
 import pickle
+import geopandas as gpd
+from geopandas import GeoDataFrame
+from shapely.geometry import Point
 
 
 #Load data
@@ -69,6 +72,8 @@ rdf = RandomForestClassifier(n_estimators = 10, criterion = 'entropy')
 rdf.fit(new_train_locs, new_train_ids)
 
 predictions = rdf.predict(test_locs)
+
+predictions_p = rdf.predict_proba(test_locs)
 
 #class_probabilities = rdf.predict_proba([X_test[27]])[0]
 
@@ -137,6 +142,31 @@ print('True negative Turdus Merulus:', tn)
 print('False positive Turdus Merulus:', fp)
 print('False negative Turdus Merulus:', fn)
 
+######################
+
+id = 12716
+id_inx = np.where(species == id)
+tp = 0
+tn = 0
+fn = 0
+fp = 0
+
+for i in range(len(test_locs)):
+    if id in test_ids[i] and predictions_p[i][id_inx[0]] > 0.025:
+        tp += 1
+    elif id in test_ids[i] and predictions_p[i][id_inx[0]] < 0.025:
+        fn += 1
+    elif id not in test_ids[i] and predictions_p[i][id_inx[0]] > 0.025:
+        fp += 1
+    elif id not in test_ids[i] and predictions_p[i][id_inx[0]] < 0.025:
+        tn += 1
+        
+print('True positive Turdus Merulus:', tp)
+print('True negative Turdus Merulus:', tn)
+print('False positive Turdus Merulus:', fp)
+print('False negative Turdus Merulus:', fn)
+
+"""
 tp = 0
 tn = 0
 fn = 0
@@ -157,3 +187,20 @@ print('Total True positive:', tp)
 print('Total True negative:', tn)
 print('Total False positive:', fp)
 print('Total False negative:', fn)
+
+"""
+"""
+sp = 12716
+test_inds_pos_TM = np.where(predictions == sp)[0]
+
+geometry = [Point(xy) for xy in zip(test_locs[test_inds_pos_TM, 1], test_locs[test_inds_pos_TM, 0])] # gets list of (lat,lon) pairs
+gdf = GeoDataFrame(geometry=geometry) # creates geopandas dataframe of these pairs
+
+world = gpd.read_file(gpd.datasets.get_path('naturalearth_lowres')) # world map included with geopandas, could download other maps
+gdf.plot(ax=world.plot(figsize=(10, 6)), marker='o', color='k', markersize=5)
+plt.title(str(sp) + ' - ' + species_names[sp])
+plt.show()
+"""
+
+
+

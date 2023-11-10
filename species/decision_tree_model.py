@@ -23,9 +23,10 @@ species_names = dict(zip(data['taxon_ids'], data['taxon_names']))
 data_test = np.load('species_test.npz', allow_pickle=True)
 test_locs = data_test['test_locs']
 test_pos_inds = dict(zip(data_test['taxon_ids'], data_test['test_pos_inds'])) 
-
+with open('reverse_dict.pkl', 'rb') as file:
+    reverse_test_pos_inds = pickle.load(file)
 ##### The next 30 lines take care of the reverse dictionary with added 0s for empty locations ######
-
+"""
 reverse_test_pos_inds = {} #Reversing dictionary so that you can check species at given location.
 
 for species_id, indices in test_pos_inds.items():
@@ -58,6 +59,8 @@ for species_id, indices in test_pos_inds.items():
     for index in indices:
         reverse_test_pos_inds[index].append(species_id)
 
+"""        
+
 ############################
 
 #1st attempt to balance dataset, I am going to reduce the number of datapoints for each species to 500
@@ -68,7 +71,7 @@ for species_id, indices in test_pos_inds.items():
 
 species_count = np.bincount(train_ids) # Returns an array with 1368520 entries (which is the biggest id), each entry is the number of
 # locations for the id/index 
-
+mean = 544
 
 
 sp_list_a = [] #id list of species with more than 500 location
@@ -76,7 +79,7 @@ sp_list_b = [] #id list for species below 500 locations
 
 i = 0
 for n in species_count:
-    if n > 500: #around species_counts.mean(): 
+    if n > mean: #around species_counts.mean(): 
         sp_list_a.append(i) # i is the id of the species/because index = id
     elif n != 0:
         sp_list_b.append(i)
@@ -96,7 +99,7 @@ wanted_indices = [] # Wanted indices, if more than 500 choose 500 best, if not t
 
 
 for sp_indices in train_inds_pos_a:
-    sp_choice = np.random.choice(sp_indices, 500, replace = False) #ALSO-500 HERE
+    sp_choice = np.random.choice(sp_indices, mean, replace = False) #ALSO-500 HERE
     wanted_indices.append(sp_choice)
 
 for sp_indices in train_inds_pos_b:
