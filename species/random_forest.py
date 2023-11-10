@@ -166,6 +166,28 @@ print('True negative Turdus Merulus:', tn)
 print('False positive Turdus Merulus:', fp)
 print('False negative Turdus Merulus:', fn)
 
+tp = 0
+tn = 0
+fn = 0
+fp = 0
+
+for id in species:
+    id_inx = np.where(species == id)
+    for i in range(len(test_locs)):
+        if id in test_ids[i] and predictions_p[i][id_inx[0]] > 0.025:
+            tp += 1
+        elif id in test_ids[i] and predictions_p[i][id_inx[0]] < 0.025:
+            fn += 1
+        elif id not in test_ids[i] and predictions_p[i][id_inx[0]] > 0.025:
+            fp += 1
+        elif id not in test_ids[i] and predictions_p[i][id_inx[0]] < 0.025:
+            tn += 1
+
+print('Total True positive w/ probs:', tp)
+print('Total True negative w/ probs:', tn)
+print('Total False positive w/ probs:', fp)
+print('Total False negative w/ probs:', fn)
+
 """
 tp = 0
 tn = 0
@@ -189,6 +211,7 @@ print('Total False positive:', fp)
 print('Total False negative:', fn)
 
 """
+
 """
 sp = 12716
 test_inds_pos_TM = np.where(predictions == sp)[0]

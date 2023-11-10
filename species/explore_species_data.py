@@ -104,3 +104,8 @@ plt.xlabel('longitude')
 plt.legend()
 plt.show()
 
+
+TM_total = len(test_pos_inds[12716]) #Number of indeces for Turdus Merula
+print('TM total =', TM_total) # I got 9197
+
+
