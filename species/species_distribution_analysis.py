@@ -226,9 +226,35 @@ def main():
     elif d == "extra":
 
         # just for seeing what is in species_train_extra - its same as species_train just with new species (not in test)
+        # also testing climate data 
+        # climate date format is like so:
+        # I is a 1080x2160 image (map) at each pixel there is a value indicating what i think is gray scale color [r, g, b, 255]? indicating variability
+        # there are 19 images
 
-        train_ids = data_extra["train_locs"]
-        print(train_ids[0:5])
+        # 1 = annual mean temp.     
+        # 2 = mean change in temp.     
+        # 3 = change in day-night temp. 
+        # 4 = temp std.  
+        # 5 = max temp.  
+        # 6 = min temp.
+        # 7 = temp range.
+        # ...
+
+        I = plt.imread('wc2/wc2.1_10m_bio_4.tif')
+        print(len(I), len(I[0]), len(I[0][0])) # y, x, val
+        x = []
+        y = []
+        for i in range(0, 1080):
+            print(I[i][1500])
+            if I[i][1500][2] != 0: # fix x at 1080 (vertical line down middle of map)
+                y.append(i)
+                x.append(1500)
+
+        plt.scatter(x, y)
+        plt.xlim([0, 2160])
+        plt.ylim([0, 1080])
+        plt.show()
+
 
 
 
@@ -239,43 +265,6 @@ if __name__ == "__main__":
     d = args.problem
 
     main()
-
-
-
-##### Below commented out is way to find countries of data #####
-
-
-# get train locations and plot
-# train_inds_pos = np.where(train_ids == sp)[0]
-# plt.plot(train_locs[train_inds_pos, 1], train_locs[train_inds_pos, 0], 'rx', label='train')
-# print(train_inds_pos)
-
-# plt.title(str(sp) + ' - ' + species_names[sp])
-# plt.grid(True)
-# plt.xlim([-180, 180])
-# plt.ylim([-90, 90])
-# plt.ylabel('latitude')
-# plt.xlabel('longitude')
-# plt.legend()
-# plt.show()
-
-# geolocator = Nominatim(user_agent="youremail@provider")
-
-# # generates countries associated to train data IF not already done as it takes long
-
-# test_country_path = Path("species_train_countries.csv")
-
-# if test_country_path.is_file() == False:
-#     train_country = []
-#     for i in range(0, len(train_locs)):
-#         location = geolocator.reverse(train_locs[i].tolist())
-#         train_country.append([i, location.raw["address"]["country"]])
-#     with open('species_train_countries.csv', 'w') as f:
-
-#         write = csv.writer(f)
-#         write.writerows(train_country)
-
-#     # now train_country provides a list corresponding w train_locs data points
 
 
 

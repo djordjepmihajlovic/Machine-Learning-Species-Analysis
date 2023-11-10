@@ -9,6 +9,7 @@ from sklearn.model_selection import train_test_split
 import matplotlib.pyplot as plt
 from sklearn.metrics import confusion_matrix
 import joblib
+import pickle
 
 
 #Load data
@@ -18,15 +19,16 @@ train_ids = data['train_ids']
 species = data['taxon_ids']      
 species_names = dict(zip(data['taxon_ids'], data['taxon_names'])) 
 
+#Balance data
 
-
+mean_train = 544
 species_count = np.bincount(train_ids) 
-sp_list_a = [] #
+sp_list_a = [] 
 sp_list_b = [] 
 
 i = 0
 for n in species_count:
-    if n > 500: ####################### number here!
+    if n > mean_train: 
         sp_list_a.append(i) 
     elif n != 0:
         sp_list_b.append(i)
@@ -43,7 +45,7 @@ for species_id in sp_list_b:
     train_inds_pos_b.append(np.where(train_ids == species_id)[0])
 
 for sp_indices in train_inds_pos_a:
-    sp_choice = np.random.choice(sp_indices, 500, replace = False) #################### number here!
+    sp_choice = np.random.choice(sp_indices, mean_train, replace = False) #
     wanted_indices.append(sp_choice)
 
 for sp_indices in train_inds_pos_b:
@@ -53,12 +55,14 @@ flat_wanted_indices = [item for sublist in wanted_indices for item in sublist]
 new_train_locs = train_locs[flat_wanted_indices]
 new_train_ids = train_ids[flat_wanted_indices]
 
-# split into train and test data
-#X_train, X_test, y_train, y_test = train_test_split(new_train_locs, new_train_ids, train_size = 0.9, test_size=0.1)
+#Load test data plus reverse dictionary
 
 data_test = np.load('species_test.npz', allow_pickle=True)
 test_locs = data_test['test_locs']
 test_pos_inds = dict(zip(data_test['taxon_ids'], data_test['test_pos_inds'])) 
+with open('reverse_dict.pkl', 'rb') as file:
+    reverse_test_pos_inds = pickle.load(file)
+
 
 rdf = RandomForestClassifier(n_estimators = 10, criterion = 'entropy')
 
@@ -70,7 +74,7 @@ predictions = rdf.predict(test_locs)
 
 #print(class_probabilities)
 
-
+"""
 
 reverse_test_pos_inds = {} #Reversing dictionary so that you can check species at given location.
 
@@ -104,13 +108,34 @@ for species_id, indices in test_pos_inds.items():
     for index in indices:
         reverse_test_pos_inds[index].append(species_id)
 
-
+"""
 
 test_ids = [] #Uses the new reverse dictionary to create set ids to each of the test locations
 for index in range(len(test_locs)):
     test_id = reverse_test_pos_inds.get(index)
     test_ids.append(test_id)
 
+
+
+id = 12716
+tp = 0
+tn = 0
+fn = 0
+fp = 0
+for i in range(len(test_locs)):
+    if id in test_ids[i] and predictions[i] == id:
+        tp += 1
+    elif id in test_ids[i] and predictions[i] != id:
+        fn += 1
+    elif id not in test_ids[i] and predictions[i] == id:
+        fp += 1
+    elif id not in test_ids[i] and predictions[i] != id:
+        tn += 1
+        
+print('True positive Turdus Merulus:', tp)
+print('True negative Turdus Merulus:', tn)
+print('False positive Turdus Merulus:', fp)
+print('False negative Turdus Merulus:', fn)
 
 tp = 0
 tn = 0

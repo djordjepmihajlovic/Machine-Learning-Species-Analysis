@@ -8,6 +8,10 @@ import numpy as np
 import random
 import matplotlib.pyplot as plt
 from sklearn.utils.class_weight import compute_class_weight
+import geopandas as gpd
+from geopandas import GeoDataFrame
+from shapely.geometry import Point
+import pickle
 
 #Load data
 data = np.load('species_train.npz')
@@ -171,7 +175,7 @@ for index in sample_indices:
     else:
         print(i, 'prediction is wrong')
 """
-
+"""
 #Second try at accuracy:
 j = 0
 for index in range(len(test_locs)):
@@ -204,7 +208,7 @@ print(accuracy)
 #Implementing a resampling or similar to get rid of the data imbalance I think might help
 
 #print(tree_classifier.predict_proba([test_locs[1]])[0])
-
+"""
 """
 Attempt at predicting different number of species per location depending on the number of species 
 in the testing location. Unsuccesful because decision predicts one species per location basically.
@@ -287,3 +291,41 @@ print('Total False positive:', fp)
 print('Total False negative:', fn)
 
 """
+
+""" 
+Code for nn distribution of turdus merulus
+
+x = np.linspace(-180, 180, 100)
+y = np.linspace(-90, 90, 100)
+heatmap = np.zeros((len(y), len(x)))
+sp_iden =  12716 # turdus merulus
+sp_idx = list(labels).index(sp_iden)
+
+for idx, i in enumerate(x):
+    for idy, j in enumerate(y):
+        X = torch.tensor([j, i]).type(torch.float) # note ordering of j and i (kept confusing me yet again)
+        output = net(X.view(-1, 2))
+        sp_choice = output[0][sp_idx].item() # choose species of evaluation
+        if sp_choice < 0.01: # if percentage prediction is < 1% of species being there then == 0 
+            sp_choice = 0
+        heatmap[idy, idx] = sp_choice
+
+X, Y = np.meshgrid(x, y)
+world = gpd.read_file(gpd.datasets.get_path('naturalearth_lowres')) 
+ax = world.plot(figsize=(10, 6))
+ax.set_title(str(species_names[sp_iden]))
+cs = ax.contourf(X, Y, heatmap, levels = np.linspace(10**(-10), np.max(heatmap), 10), alpha = 0.5)
+ax.clabel(cs, inline = True)
+plt.show()
+""" 
+
+sp = 12716
+test_inds_pos_TM = np.where(predictions == sp)[0]
+
+geometry = [Point(xy) for xy in zip(test_locs[test_inds_pos_TM, 1], test_locs[test_inds_pos_TM, 0])] # gets list of (lat,lon) pairs
+gdf = GeoDataFrame(geometry=geometry) # creates geopandas dataframe of these pairs
+
+world = gpd.read_file(gpd.datasets.get_path('naturalearth_lowres')) # world map included with geopandas, could download other maps
+gdf.plot(ax=world.plot(figsize=(10, 6)), marker='o', color='k', markersize=5)
+plt.title(str(sp) + ' - ' + species_names[sp])
+plt.show()

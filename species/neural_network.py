@@ -74,30 +74,33 @@ test_pos_inds = dict(zip(data_test['taxon_ids'], data_test['test_pos_inds']))
 
 #############
 
-# one-hot encoding for test set
-test_labels = [[0]*len(labels_vec)]*len(test_locs) # make list of labels for test data
-for species_id, index in test_pos_inds.items(): # species ids in dict
-    base = [0]*len(labels_vec) # one-hot vector (hopefully same size)
-    point = labels_dict[species_id]
-    code = labels_vec.tolist().index(point)
-    base[code] = 1
 
-    for i in index:
-        test_labels[i] = base
+# this is wrong
+
+# # one-hot encoding for test set
+# test_labels = [[0]*len(labels_vec)]*len(test_locs) # make list of labels for test data
+# for species_id, index in test_pos_inds.items(): # species ids in dict
+#     base = [0]*len(labels_vec) # one-hot vector (hopefully same size)
+#     point = labels_dict[species_id]
+#     code = labels_vec.tolist().index(point)
+#     base[code] = 1
+
+#     for i in index:
+#         test_labels[i] = base
 
 
-tensor_test_f = torch.Tensor(test_locs) # transform to torch tensor
-tensor_test_l = torch.Tensor(test_labels).type(torch.float) # note: this is one vector label per coord
-test_set = TensorDataset(tensor_test_f,tensor_test_l) 
+# tensor_test_f = torch.Tensor(test_locs) # transform to torch tensor
+# tensor_test_l = torch.Tensor(test_labels).type(torch.float) # note: this is one vector label per coord
+# test_set = TensorDataset(tensor_test_f,tensor_test_l) 
 
-test_loader = DataLoader(test_set, batch_size=100, shuffle=True)
+# test_loader = DataLoader(test_set, batch_size=100, shuffle=True)
 
 # # # 
 
-net = FFNNet(input_size = 2, train_size = 100, output_size = (len(labels)))  # pulls in defined FFNN from models.py
+net = FFNNet(input_size = 2, train_size = 32, output_size = (len(labels)))  # pulls in defined FFNN from models.py
 
 optimizer = optim.Adam(net.parameters(), lr = 0.001) # learning rate = size of steps to take, alter as see fit (0.001 is good)
-EPOCHS = 15  # defined no. of epochs, can change probably don't need too many (15 is good)
+EPOCHS = 15 # defined no. of epochs, can change probably don't need too many (15 is good)
 
 for epoch in range(EPOCHS):
     for data in train_loader:
@@ -106,7 +109,7 @@ for epoch in range(EPOCHS):
         net.zero_grad()
         output = net(X.view(-1, 2)) # pass through neural network
         # produces a vector, with idea being weight per guess for each label i.e. (0, 1, 0, 1) <- guessing that label is second and fourth in potential list
-        loss = F.binary_cross_entropy(output, y) # BCE most ideal for a multilabel classification problem 
+        loss = F.binary_cross_entropy(output, y) # CE most ideal for a multilabel classification problem 
         loss.backward() # backpropagation 
         optimizer.step() # adjust weights
 
@@ -121,35 +124,34 @@ for epoch in range(EPOCHS):
 correct = 0
 total = 0
 
-with torch.no_grad():
-    for data in test_loader:
-        X, y = data
-        output = net(X.view(-1, 2))
-        for idx, i in enumerate(output):
-            positive_idx = torch.argmax(y[idx])
-            if torch.max(y[idx]) == 0:
-                positive_idx = []
-            observations = torch.topk(i, 20)
-            if observations[0][0] <= 0.01:
-                correct +=1
-            else:
-                for j in observations[1]:
-                    if j in positive_idx:
-                        correct += 1
-            total +=1
+# want chosen species 12176 
+
+# sp_iden = 12176
+# sp_idx = list(labels).index(sp_iden)
+
+# with torch.no_grad():
+#     for data in test_loader:
+#         X, y = data
+#         output = net(X.view(-1, 2))
+#         for idx, i in enumerate(output):
+#             positive_idx = torch.argmax(y[idx])
+#             if torch.max(y[idx]) == 0:
+#                 positive_idx = []
+#             observations = torch.topk(i, 20)
+#             if observations[0][0] <= 0.01:
+#                 correct +=1
+#             else:
+#                 for j in observations[1]:
+#                     if j in positive_idx:
+#                         correct += 1
+#             total +=1
             
 
-print("Accuracy: ", round(correct/total, 3)*100, "%")
+# print("Accuracy: ", round(correct/total, 3)*100, "%")
 
 # print(torch.argmax(y[0]), torch.topk(output[0], 30))
 
 X = torch.tensor([-1.286389, 36.817223]) # Nairobi, Kenya
-X = torch.tensor([-75.10052548639784, 123.35002912811925]) # Concordia, Antarctica
-X = torch.tensor([0.5162773075444781, 25.20450202335836]) # Kisangani, Congo
-X = torch.tensor([22.625950924673553, 97.30142582402296]) # Hsipaw, Myanmar
-X = torch.tensor([-3.0028115414379086, -59.995268536688606]) # Manauas, Brazil
-X = torch.tensor([-21.91487895822523, 48.11852675456639]) # Manaraka, Madagascar
-X = torch.tensor([27.975769515926874, -15.582669871478057]) # Gran Canaria
 
 output = net(X.view(-1, 2))
 observations = torch.topk(output, 10)
@@ -158,29 +160,69 @@ sp = observations[1].tolist()
 sp = sp[0]
 
 geolocator = Nominatim(user_agent="youremail@provider")
-location = geolocator.reverse("27.975769515926874, -15.582669871478057")
+location = geolocator.reverse("-1.286389, 36.817223")
 
 found_sp = []
 for i,v in enumerate(sp):
     found_sp.append(species_names[labels[v]])
 
-print(f"Top 10, most likely species to be observed at {location.address}: {found_sp}, with relative liklihood {ch}")
+test = 0
+for i in output[0].tolist():
+    test += i
+
+print(test)
+print(output[0].tolist())
+
+print(f"Top species to be observed at {location.address}: {found_sp}, with relative liklihood {ch}")
 
 
-
-x = np.linspace(-180, 180, 100)
-y = np.linspace(-90, 90, 100)
-heatmap = np.zeros((len(y), len(x)))
 sp_iden =  12716 # turdus merulus
 sp_idx = list(labels).index(sp_iden)
+
+# accuracy for a specific species 
+true_p = 0
+true_n = 0
+false_p = 0
+false_n = 0
+
+# for idx, i in enumerate(labels): # iterate through all labels
+
+for data in train_loader:
+    X, y = data # note ordering of j and i (kept confusing me yet again)
+    output = net(X.view(-1, 2))
+    for i in range(0, len(output)):
+        sp_choice = output[i][sp_idx].item() # choose species of evaluation
+        value_ = y[i][sp_idx]
+        if sp_choice > 0.025 and value_ == 1: # if percentage prediction is < 25% of species being there then == 0 
+            true_p += 1
+
+        elif sp_choice < 0.025 and value_ == 0:
+            true_n += 1
+
+        elif sp_choice > 0.025 and value_ == 0:
+            false_p += 1
+
+        elif sp_choice < 0.025 and value_ == 1:
+            false_n += 1
+
+        total += 1
+
+print(idx)
+
+print(f"True positive: {true_p}")
+print(f"True negative: {true_n}")
+print(f"False positive: {false_p}")
+print(f"False negative: {false_n}")
+
+x =np.linspace(-180, 180, 100)
+y = np.linspace(-90, 90, 100)
+heatmap = np.zeros((len(y), len(x)))
 
 for idx, i in enumerate(x):
     for idy, j in enumerate(y):
         X = torch.tensor([j, i]).type(torch.float) # note ordering of j and i (kept confusing me yet again)
         output = net(X.view(-1, 2))
         sp_choice = output[0][sp_idx].item() # choose species of evaluation
-        if sp_choice < 0.01: # if percentage prediction is < 1% of species being there then == 0 
-            sp_choice = 0
         heatmap[idy, idx] = sp_choice
 
 X, Y = np.meshgrid(x, y)

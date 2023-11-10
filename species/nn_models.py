@@ -19,9 +19,9 @@ class FFNNet(nn.Module):
         x = F.relu(self.fc1(x))
         x = F.relu(self.fc2(x))
         x = F.relu(self.fc3(x))
-        x = self.fc4(x)
+        x = F.sigmoid(self.fc4(x))
 
-        return F.sigmoid(x)  # wont use softmax here! for multilabel classification we need sigmoid!
+        return x  # wont use softmax here! for multilabel classification we need sigmoid!
     
     # idea is a k-binary classification problem!
 

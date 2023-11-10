@@ -9,6 +9,7 @@ from sklearn.model_selection import train_test_split
 import matplotlib.pyplot as plt
 from sklearn.metrics import confusion_matrix
 
+
 #Load data
 data = np.load('species_train.npz')
 train_locs = data['train_locs']          
