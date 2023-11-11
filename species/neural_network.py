@@ -16,6 +16,7 @@ from sklearn.metrics import confusion_matrix, ConfusionMatrixDisplay
 import matplotlib.pyplot as plt
 import geopandas as gpd
 import seaborn as sns
+import pandas as pd
 
 # at the heart of it, this is a multi label classification problem
 
@@ -28,7 +29,6 @@ species_names = dict(zip(data_train['taxon_ids'], data_train['taxon_names']))  #
 tensor_train_f = torch.Tensor(train_locs) # transform to torch tensor
 
 # preprocessing of data s.t. train_ids isn't random numbers rather list (0,1,2,3,4 -> no. unique ID's)
-print(len(np.unique(data_train['train_locs'])))
 labels = np.unique(data_train['train_ids'])  
 labels_vec = np.arange(0, len(labels))
 labels_dict = dict(zip(labels, labels_vec)) # label + corresponding one-hot vector index
@@ -85,8 +85,8 @@ test_loader = DataLoader(test_set, batch_size=100, shuffle=True)
 
 net = FFNNet(input_size = 2, train_size = 64, output_size = (len(labels)))  # pulls in defined FFNN from models.py
 
-optimizer = optim.Adam(net.parameters(), lr = 0.00001) # learning rate = size of steps to take, alter as see fit (0.001 is good)
-EPOCHS = 3 # defined no. of epochs, can change probably don't need too many (15 is good)
+optimizer = optim.Adam(net.parameters(), lr = 0.001) # learning rate = size of steps to take, alter as see fit (0.001 is good)
+EPOCHS = 15 # defined no. of epochs, can change probably don't need too many (15 is good)
 
 for epoch in range(EPOCHS):
     for data in train_loader:
@@ -95,7 +95,7 @@ for epoch in range(EPOCHS):
         net.zero_grad()
         output = net(X.view(-1, 2)) # pass through neural network
         # produces a vector, with idea being weight per guess for each label i.e. (0, 1, 0, 1) <- guessing that label is second and fourth in potential list
-        loss = F.mse_loss(output, y) # BCE most ideal for a multilabel classification problem 
+        loss = F.binary_cross_entropy(output, y) # BCE most ideal for a multilabel classification problem 
         loss.backward() # backpropagation 
         optimizer.step() # adjust weights
 
@@ -134,53 +134,90 @@ print(output[0].tolist())
 
 print(f"Top species to be observed at {location.address}: {found_sp}, with relative liklihood {ch}")
 
-
-sp_iden =  12716 # turdus merulus
-sp_idx = list(labels).index(sp_iden)
+# 43567
+# 13851 
+# 35990 gallotia stehlini
+# 4535 anous stolidus
+# 12716 turdus merula
+sp_idx = []
+sp_iden = [12716, 4535, 35990, 13851, 43567]
+for i in sp_iden:
+    sp_idx.append(list(labels).index(i))
 
 # accuracy for a specific species 
-true_p = np.zeros(20)
-true_n = np.zeros(20)
-false_p = np.zeros(20)
-false_n = np.zeros(20)
-total = np.zeros(20)
+true_p = np.zeros((5, 20))
+true_n = np.zeros((5, 20))
+false_p = np.zeros((5, 20))
+false_n = np.zeros((5, 20))
+total = np.zeros((5, 20))
 
 # for idx, i in enumerate(labels): # iterate through all labels
+for species_no, sp_idx in enumerate(sp_idx):
+    for data in test_loader:
+        X, y = data # note ordering of j and i (kept confusing me yet again)
+        output = net(X.view(-1, 2))
+        for i in range(0, len(output)):
+            # for j in range(0, len(output[0])):
+            j = sp_idx
+            sp_choice = output[i][j].item() # choose species of evaluation
+            value_ = y[i][j]
 
-for data in test_loader:
-    X, y = data # note ordering of j and i (kept confusing me yet again)
-    output = net(X.view(-1, 2))
-    for i in range(0, len(output)):
-        # for j in range(0, len(output[0])):
-        j = sp_idx
-        sp_choice = output[i][j].item() # choose species of evaluation
-        value_ = y[i][j]
+            for idx, specificity in enumerate(np.linspace(0.0, 0.05, 20)):
 
-        for idx, specificity in enumerate(np.linspace(0.05, 1, 20)):
+                if sp_choice >=specificity and value_ == 1: # if percentage prediction is < 25% of species being there then == 0 
+                    true_p[species_no][idx] += 1
 
-            if sp_choice >=specificity and value_ == 1: # if percentage prediction is < 25% of species being there then == 0 
-                true_p[idx] += 1
+                elif sp_choice < specificity and value_ == 0:
+                    true_n[species_no][idx] += 1
 
-            elif sp_choice < specificity and value_ == 0:
-                true_n[idx] += 1
+                elif sp_choice >= specificity and value_ == 0:
+                    false_p[species_no][idx] += 1
 
-            elif sp_choice >= specificity and value_ == 0:
-                false_p[idx] += 1
+                elif sp_choice < specificity and value_ == 1:
+                    false_n[species_no][idx] += 1
 
-            elif sp_choice < specificity and value_ == 1:
-                false_n[idx] += 1
+                total[species_no][idx] += 1
 
-            total[idx] += 1
+    print(f"Species {species_no} done.")
 
-print(f"True positive: {true_p}")
-print(f"True negative: {true_n}")
-print(f"False positive: {false_p}")
-print(f"False negative: {false_n}")
+true_p_rate = true_p/(true_p + false_n)
+false_p_rate = false_p/(true_n + false_p)
 
-plt.plot(false_p.tolist(), true_p.tolist())
-plt.xlabel('False Positive predictions')
-plt.ylabel('True Positive Predictions')
+conf_mat = [[true_p[0][1]/(true_p[0][1]+false_n[0][1]), true_n[0][1]/(true_n[0][1]+false_p[0][1])], [false_p[0][1]/(true_n[0][1]+false_p[0][1]), false_n[0][1]/(false_n[0][1]+true_p[0][1])]] # ideal sensitivity
+conf_label = ['True', 'False']
+conf_col = ['Positive', 'Negative']
 
+df_cm = pd.DataFrame(conf_mat, index = conf_label,
+                  columns = conf_col)
+
+sns.set_theme()
+
+# sns.lineplot(x = false_p_rate[0].tolist(), y = true_p_rate[0].tolist())
+# sns.lineplot(x = false_p_rate[1].tolist(), y = true_p_rate[1].tolist())
+# sns.lineplot(x = false_p_rate[2].tolist(), y = true_p_rate[2].tolist())
+# sns.lineplot(x = false_p_rate[3].tolist(), y = true_p_rate[3].tolist())
+# sns.lineplot(x = false_p_rate[4].tolist(), y = true_p_rate[4].tolist())
+# plt.xlabel('False Positive Rate')
+# plt.ylabel('True Positive Rate')
+# ax = plt.gca()
+# ax.set_ylim([0, 1.05])
+
+AUC = []
+
+AUC.append(np.abs(np.trapz(y=true_p_rate[0].tolist(), x=false_p_rate[0].tolist())))
+AUC.append(np.abs(np.trapz(y=true_p_rate[1].tolist(), x=false_p_rate[1].tolist())))
+AUC.append(np.abs(np.trapz(y=true_p_rate[2].tolist(), x=false_p_rate[2].tolist())))
+AUC.append(np.abs(np.trapz(y=true_p_rate[3].tolist(), x=false_p_rate[3].tolist())))
+AUC.append(np.abs(np.trapz(y=true_p_rate[4].tolist(), x=false_p_rate[4].tolist())))
+
+print(AUC)
+
+sns.barplot(x=sp_iden, y=AUC, color='b')
+plt.xlabel('Species')
+plt.ylabel('AUC-ROC')
+plt.show()
+
+sns.heatmap(df_cm, cmap='Greys', annot=True)
 plt.show()
 
 x =np.linspace(-180, 180, 100)
@@ -193,7 +230,7 @@ for idx, i in enumerate(x):
         output = net(X.view(-1, 2))
         sp_choice = output[0][sp_idx].item() # choose species of evaluation
 
-        if sp_choice < 0.025:
+        if sp_choice < 0.0025:
             heatmap[idy, idx] = 0
 
         else:
@@ -202,7 +239,7 @@ for idx, i in enumerate(x):
 X, Y = np.meshgrid(x, y)
 world = gpd.read_file(gpd.datasets.get_path('naturalearth_lowres')) 
 ax = world.plot(figsize=(10, 6))
-ax.set_title(str(sp_iden) + ' - ' + str(species_names[sp_iden]))
+ax.set_title(str(sp_iden[0]) + ' - ' + str(species_names[sp_iden[0]]))
 cs = ax.contourf(X, Y, heatmap, levels = np.linspace(10**(-10), np.max(heatmap), 10), alpha = 0.5, cmap = 'plasma')
 ax.clabel(cs, inline = True)
 plt.show() 

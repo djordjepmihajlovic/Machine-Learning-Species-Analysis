@@ -81,6 +81,7 @@ plt.close('all')
 plt.figure(0)
 
 sp = np.random.choice(species)
+sp = 4535
 print('\nDisplaying random species:')
 print(str(sp) + ' - ' + species_names[sp]) 
 
@@ -107,5 +108,6 @@ plt.show()
 
 TM_total = len(test_pos_inds[12716]) #Number of indeces for Turdus Merula
 print('TM total =', TM_total) # I got 9197
+
 
 

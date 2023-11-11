@@ -103,6 +103,8 @@ def main():
 
         test_inds_pos_mini = test_pos_inds[label_mini]
 
+        print(label_maxi)
+
         # geopandas code to plot data
 
         geometry_maxi = [Point(xy) for xy in zip(test_locs[test_inds_pos_maxi, 1], test_locs[test_inds_pos_maxi, 0])] 
@@ -140,6 +142,8 @@ def main():
         label_maxi = int(sorted_species_density[-1][1])
 
         print(len(test_pos_inds[int(label_maxi)]))
+
+        print(label_maxi)
 
         print(f"The most densely populated species is: {species_names[label_maxi]}") # finds label and species with highest count per area
         print(f"The least densely populated species is: {species_names[label_mini]}") # ''' smallest '''
