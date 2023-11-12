@@ -15,6 +15,7 @@ from argparse import ArgumentParser
 import pandas as pd
 import seaborn as sns
 from pandas.plotting import table
+import math
 
 def distance(x1, y1, x2, y2): 
     coords_1 = (x1, y1)
@@ -86,24 +87,28 @@ def main():
 
     if d == "distribution":
 
+        # sns.set_style('darkgrid')
+
         with open('species_train_dist.csv', newline='') as f:
             reader = csv.reader(f)
             species_distn = list(reader)
 
         sorted_species_distn = sorted(species_distn, key=lambda x: float(x[0]))
 
-        label_mini = int(sorted_species_distn[0][1])
-        label_maxi = int(sorted_species_distn[-1][1])
-
-        print(f"The largest distributed species is: {species_names[label_maxi]}, spanning: {float(sorted_species_distn[-1][0])}km") # finds label and species with largest spread
-        print(f"The smallest distributed species is: {species_names[label_mini]}, spanning: {float(sorted_species_distn[0][0])}km ") # ''' smallest '''
+        label_mini = sorted_species_distn[0:5]
+        label_maxi = sorted_species_distn[-6:-1]
 
 
-        test_inds_pos_maxi = test_pos_inds[label_maxi]  
-
-        test_inds_pos_mini = test_pos_inds[label_mini]
-
+        print(label_mini)
         print(label_maxi)
+
+        print(f"The 5 largest distributed species are: {[int(i[1]) for i in label_maxi]}, spanning: {[float(j[0]) for j in label_maxi]}km") # finds label and species with largest spread
+        print(f"The 5 smallest distributed species are: {[int(i[1]) for i in label_mini]}, spanning: {[float(j[0]) for j in label_mini]}km ") # ''' smallest '''
+
+
+        test_inds_pos_maxi = test_pos_inds[int(label_maxi[-1][1])]  
+
+        test_inds_pos_mini = test_pos_inds[int(label_mini[0][1])]
 
         # geopandas code to plot data
 
@@ -114,9 +119,9 @@ def main():
         gdf_mini = GeoDataFrame(geometry=geometry_mini)
 
         world = gpd.read_file(gpd.datasets.get_path('naturalearth_lowres')) 
-        ax = world.plot(figsize=(10, 6))
-        gdf_maxi.plot(ax=ax, marker='o', color='b', markersize=5, label=f"{species_names[label_maxi]} span: {float(sorted_species_distn[-1][0])} km")
-        gdf_mini.plot(ax=ax, marker='o', color='r', markersize=5, label=f"{species_names[label_mini]} span: {float(sorted_species_distn[0][0])} km")
+        ax = world.plot()
+        gdf_maxi.plot(ax=ax, marker='o', color='b', markersize=5, label=f"{species_names[int(label_maxi[-1][1])]} span: {float(sorted_species_distn[-1][0])} km")
+        gdf_mini.plot(ax=ax, marker='o', color='r', markersize=5, label=f"{species_names[int(label_mini[0][1])]} span: {float(sorted_species_distn[0][0])} km")
 
         plt.legend()
         plt.title(f"Population distribution of most localized vs. most spread species.")
@@ -138,20 +143,20 @@ def main():
 
         sorted_species_density = sorted(density, key=lambda x: float(x[0]))
 
-        label_mini = int(sorted_species_density[0][1])
-        label_maxi = int(sorted_species_density[-1][1])
+        label_mini = sorted_species_density[0:5]
+        label_maxi = sorted_species_density[-6:-1]
 
-        print(len(test_pos_inds[int(label_maxi)]))
 
+        print(label_mini)
         print(label_maxi)
 
-        print(f"The most densely populated species is: {species_names[label_maxi]}") # finds label and species with highest count per area
-        print(f"The least densely populated species is: {species_names[label_mini]}") # ''' smallest '''
+        print(f"The 5 densest distributed species are: {[int(i[1]) for i in label_maxi]}, spanning: {[float(j[0]) for j in label_maxi]}km") # finds label and species with largest spread
+        print(f"The 5 sparsest distributed species are: {[int(i[1]) for i in label_mini]}, spanning: {[float(j[0]) for j in label_mini]}km ") # ''' smallest '''
 
 
-        test_inds_pos_maxi = test_pos_inds[label_maxi]  
+        test_inds_pos_maxi = test_pos_inds[int(label_maxi[-1][1])]  
 
-        test_inds_pos_mini = test_pos_inds[label_mini]
+        test_inds_pos_mini = test_pos_inds[int(label_mini[0][1])]
 
         # geopandas code to plot data
 
@@ -225,6 +230,26 @@ def main():
         sns.barplot(x = x, y = y)
         plt.xlabel("metric")
         plt.ylabel("accuracy")
+        plt.show()
+
+    elif d == "plot_result":
+    
+        top_dist_names = ['Podiceps' + '\n' + ' cristatus', 'Turdus' + '\n' + ' merula', 'Acanthis' + '\n' + ' flammea', 'Fregata' + '\n' + ' minor', 'Oceanites' + '\n' + ' oceanicus']
+        top_ID = [4208, 12716, 145300, 4636, 4146]
+        top_dist_data = [16079.319321173714, 17684.382767361738, 19166.129948662958, 19689.434592637197, 19833.606659853107]
+        min_dist_names = ['Gallotia' + '\n' + 'stehlini', 'Paramesotriton' + '\n' + 'hongkongensis', 'Phoenicolacerta' + '\n' + 'troodica', 'Selasphorus' + '\n' + 'flammula', 'Rhyacotriton' + '\n' + 'kezeri']
+        min_ID = [35990, 64387, 73903, 6364, 27696]
+        min_dist_data = [48.66426342304116, 163.1234814187649, 191.2538733659659, 201.2622172061399, 237.33474103956044]
+
+        top_dense_ID = [38992, 29976, 8076, 145310, 4569]
+        top_dense_data = [0.0006965029544433499, 0.0007055364299438898, 0.0007106531885470116, 0.0007337961594351512, 0.0007513834632404488]
+        top_sparse_ID = [4345, 44570, 42961, 32861, 2071]
+        top_sparse_data = [4.177038786428789e-05, 4.221188087170338e-05, 4.477237034420791e-05, 4.7904293356840265e-05, 4.95147014244629e-05]
+
+        sns.barplot(y=[math.log(i) for i in min_dist_data] + [math.log(i) for i in top_dist_data], x= min_ID + top_ID, color='blue' , linewidth=1, edgecolor = 'black')
+        plt.xlabel('Species taxon ID')
+        plt.ylabel('Max. population' + '\n' + 'log span (km)')
+        plt.title('Logarithmic maximum species distribution.')
         plt.show()
 
     elif d == "extra":

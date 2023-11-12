@@ -1,0 +1,4 @@
+top 5 sparsest species: [4345, 44570, 42961, 32861, 2071]
+top 5 densest species: [38992, 29976, 8076, 145310, 4569]
+top 5 largest distn species: [4208, 12716, 145300, 4636, 4146]
+top 5 smallest distn species: [35990, 64387, 73903, 6364, 27696]

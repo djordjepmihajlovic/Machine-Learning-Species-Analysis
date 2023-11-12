@@ -20,12 +20,13 @@ df = pd.DataFrame({
 
 short_label = [name[:2] + '.' for name in df.index]
 
-custom_palette = sns.color_palette("muted")  
+custom_palette = sns.color_palette("gray")  
 
-sns.set_palette(custom_palette)
-df.plot(kind='bar')
+# sns.set_palette(custom_palette)
+df.plot(kind='bar', rot=0)
+
 plt.xlabel('Species')
-plt.xticks(range(len(df.index)), short_label, rotation=0, ha='right')
+# plt.xticks(range(len(df.index)), short_label, rotation=0, ha='right')
 plt.ylabel('AUC-ROC')
 plt.title('AUC-ROC Values for Different Classifiers vs. Different Species')
 plt.legend(title='Classifiers', loc='lower right')
