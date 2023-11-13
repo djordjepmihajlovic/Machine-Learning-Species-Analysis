@@ -51,7 +51,7 @@ test_locs = data_test['test_locs']    # 2D array, rows are number of datapoints
 # data_test['test_pos_inds'] is a list of lists, where each list corresponds to 
 # the indices in test_locs where a given species is present, it can be assumed 
 # that they are not present in the other locations 
-test_pos_inds = dict(zip(data_test['taxon_ids'], data_test['test_pos_inds']))    
+test_pos_inds = dict(zip(data_test['taxon_ids'], data_test['test_pos_inds']))     
 
 # data stats
 print('Train Stats:')

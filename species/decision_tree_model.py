@@ -12,6 +12,7 @@ import geopandas as gpd
 from geopandas import GeoDataFrame
 from shapely.geometry import Point
 import pickle
+from sklearn.metrics import roc_curve, auc
 
 #Load data
 data = np.load('species_train.npz')
@@ -19,6 +20,14 @@ train_locs = data['train_locs']
 train_ids = data['train_ids']               
 species = data['taxon_ids']      
 species_names = dict(zip(data['taxon_ids'], data['taxon_names'])) 
+
+range_list = range(len(species)) #Range from 0-499
+spec_dict = dict(zip(species, range_list)) #Dictionary matches species id with index in species
+train_ids_v2 = [] #List of train ids, now they go from 0 to 499
+for indx in train_ids:
+    x = spec_dict.get(indx)
+    train_ids_v2.append(x)
+train_ids_v3 = np.array(train_ids_v2)
 
 data_test = np.load('species_test.npz', allow_pickle=True)
 test_locs = data_test['test_locs']
@@ -108,30 +117,111 @@ for sp_indices in train_inds_pos_b:
 flat_wanted_indices = [item for sublist in wanted_indices for item in sublist]
 
 new_train_locs = train_locs[flat_wanted_indices] ##What I wanted, new train locs and train ids with a max of 500 per specie
-new_train_ids = train_ids[flat_wanted_indices]
-
-
-#Using these new locs and ids I got an improvement on the accuracy of around 2% which is not very significant but it is noteworthy
-# because I have REMOVED data and it has IMPROVED accuracy... There are better methods to explore the data imbalance we should look into.
-
-######Decision Tree model#######
-tree_classifier = tree.DecisionTreeClassifier(min_samples_leaf= 25)#, class_weight='balanced') #SHOULD LOOP THROUGH DIFFERENT LEAF NUMBERS TO CHECK BEST RESULTS!
-
-##### Should I use a min sample leaf? Best Results so far (small sample) is using minimum of 2 per leaf, not massive change.
-##### Using class_weight = "balanced" made the model a little worst actually, maybe it can be weighed properly using another method.
-
-######Fitting######
-tree_classifier.fit(new_train_locs, new_train_ids)
-#tree_classifier.fit(train_locs, train_ids) #Have added class_weight = 'balanced', could be better than reducing "by force"
-
-######Predictions######
-predictions = tree_classifier.predict(test_locs)
+new_train_ids = train_ids_v3[flat_wanted_indices]
 
 test_ids = [] #Uses the new reverse dictionary to create set ids to each of the test locations
 for index in range(len(test_locs)):
     test_id = reverse_test_pos_inds.get(index)
     test_ids.append(test_id)
 
+
+max_depth_values = [5, 10, 15, 20, 30, 40]
+error_values = []
+accuracy_values = []
+
+for max_depth in max_depth_values:
+    tree_classifier = tree.DecisionTreeClassifier(max_depth = max_depth)
+    tree_classifier.fit(new_train_locs, new_train_ids)
+    predictions_p = tree_classifier.predict_proba(test_locs)
+    """
+    id = 12716
+    id_inx = np.where(species == id)
+    """
+    tp = 0
+    tn = 0
+    fn = 0
+    fp = 0
+    threshold = 0.0001
+    for id in species:
+        id_inx = np.where(species == id)
+        for i in range(len(test_locs)):
+            if id in test_ids[i] and predictions_p[i][id_inx[0]] > threshold:
+                tp += 1
+            elif id in test_ids[i] and predictions_p[i][id_inx[0]] < threshold:
+                fn += 1
+            elif id not in test_ids[i] and predictions_p[i][id_inx[0]] > threshold:
+                fp += 1
+            elif id not in test_ids[i] and predictions_p[i][id_inx[0]] < threshold:
+                tn += 1
+    total = tp+fn+fp+tn
+    accuracy = (tp+tn)/total
+    error = (fp+fn)/total
+    print('for max depth = ', max_depth) #If I do this for all species total I would get the best result i Think, could I plot it? For appendix.
+    print('accuracy = ', accuracy)
+    print('error =', error)
+    accuracy_values.append(accuracy)
+    error_values.append(error)
+
+
+plt.plot(max_depth_values, accuracy_values, label='accuracy')
+plt.plot(max_depth_values, error_values, label= 'errors')
+plt.show()
+
+
+"""
+######Decision Tree model#######
+tree_classifier = tree.DecisionTreeClassifier()#min_samples_leaf= 10)#, class_weight='balanced') #SHOULD LOOP THROUGH DIFFERENT LEAF NUMBERS TO CHECK BEST RESULTS!
+
+######Fitting######
+tree_classifier.fit(new_train_locs, new_train_ids)
+
+######Predictions######
+predictions = tree_classifier.predict(test_locs)
+
+predictions_p = tree_classifier.predict_proba(test_locs)
+
+id = 12716
+id_inx = np.where(species == id)
+tp = 0
+tn = 0
+fn = 0
+fp = 0
+threshold = 0.0001
+for i in range(len(test_locs)):
+    if id in test_ids[i] and predictions_p[i][id_inx[0]] > threshold:
+        tp += 1
+    elif id in test_ids[i] and predictions_p[i][id_inx[0]] < threshold:
+        fn += 1
+    elif id not in test_ids[i] and predictions_p[i][id_inx[0]] > threshold:
+        fp += 1
+    elif id not in test_ids[i] and predictions_p[i][id_inx[0]] < threshold:
+        tn += 1
+        
+print('True positive Turdus Merulus w/ probs:', tp)
+print('True negative Turdus Merulus w/ probs:', tn)
+print('False positive Turdus Merulus w/ probs:', fp)
+print('False negative Turdus Merulus w/ probs:', fn)
+"""
+"""
+tp = 0
+tn = 0
+fn = 0
+fp = 0
+for i in range(len(test_locs)):
+    if id in test_ids[i] and species[predictions[i]] == id:
+        tp += 1
+    elif id in test_ids[i] and species[predictions[i]] != id:
+        fn += 1
+    elif id not in test_ids[i] and species[predictions[i]] == id:
+        fp += 1
+    elif id not in test_ids[i] and species[predictions[i]] != id:
+        tn += 1
+        
+print('True positive Turdus Merulus:', tp)
+print('True negative Turdus Merulus:', tn)
+print('False positive Turdus Merulus:', fp)
+print('False negative Turdus Merulus:', fn)
+"""
 """
 IGNORE
 Plotting tree?????
@@ -293,7 +383,7 @@ print('Total True negative:', tn)
 print('Total False positive:', fp)
 print('Total False negative:', fn)
 
-"""
+""" 
 
 """ 
 Code for nn distribution of turdus merulus
@@ -322,6 +412,9 @@ ax.clabel(cs, inline = True)
 plt.show()
 """ 
 
+"""
+Drawing predicted distribution of Turdus Merulas
+
 sp = 12716
 test_inds_pos_TM = np.where(predictions == sp)[0]
 
@@ -332,3 +425,6 @@ world = gpd.read_file(gpd.datasets.get_path('naturalearth_lowres')) # world map 
 gdf.plot(ax=world.plot(figsize=(10, 6)), marker='o', color='k', markersize=5)
 plt.title(str(sp) + ' - ' + species_names[sp])
 plt.show()
+"""
+
+

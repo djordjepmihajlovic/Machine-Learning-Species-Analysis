@@ -96,7 +96,7 @@ False negative Turdus Merulus: 9032
 Total True positive: 158561
 Total True negative: 142224793
 Total False positive: 129561
-Total False negative: 1548085
+Total False negative: 1548085 
 
 Seems to do a bit better but I dont know if statistically significant?
 
@@ -123,6 +123,49 @@ Total False negative w/ probs: 1670142
 
 - What is the AUC curve?
 - Check teacher procedures
+
+
+Getting AUC:
+
+Lets start with changing the training data so we have a multi output problem. This was useless.
+
+Decision trees are not, by nature, probabilistic, they return the majority class of the leaf node.
+However, random forests use an ensemble of decision trees to get a probability, so lets try and use 
+random forest, get predict_proba and then try for different threshold to check FTR and all that.
+Lets see if it gives something, anything. Predict_proba and predict NEVER match! HOW??? It makes no sense...
+
+
+Chat GPT tells me that precision-recall curves are better...
+
+I finally got predict proba to work! Now I can use those values to evaluate the model, get a threshold and all that!
+
+TO DO NOW:
+
+Why is the precision score so low for the same id that has the largest ROC score? Because only 2 data points in the test data
+
+Finding best max_depth with decision tree: Create graph for appendix with following values.
+
+for max depth =  5
+accuracy =  0.839251039490216
+error = 0.16074896050978404
+for max depth =  10
+accuracy =  0.9604400566426722
+error = 0.0395599433573278
+for max depth =  15
+accuracy =  0.9847888533329631
+error = 0.01521114666703688
+for max depth =  20
+accuracy =  0.9883024066194182
+error = 0.011697593380581836
+for max depth =  30
+accuracy =  0.9881058648766842
+error = 0.011894135123315818
+for max depth =  40
+accuracy =  0.9880130014368913
+error = 0.011986998563108683
+
+
+
 
 
 

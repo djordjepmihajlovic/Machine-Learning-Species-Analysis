@@ -17,6 +17,14 @@ train_ids = data['train_ids']
 species = data['taxon_ids']      
 species_names = dict(zip(data['taxon_ids'], data['taxon_names'])) 
 
+range_list = range(len(species)) #Range from 0-499
+spec_dict = dict(zip(species, range_list)) #Dictionary matches species id with index in species
+train_ids_v2 = [] #List of train ids, now they go from 0 to 499
+for indx in train_ids:
+    x = spec_dict.get(indx)
+    train_ids_v2.append(x)
+
+"""
 species_count = np.bincount(train_ids) 
 sp_list_a = [] #
 sp_list_b = [] 
@@ -49,10 +57,10 @@ for sp_indices in train_inds_pos_b:
 flat_wanted_indices = [item for sublist in wanted_indices for item in sublist]
 new_train_locs = train_locs[flat_wanted_indices]
 new_train_ids = train_ids[flat_wanted_indices]
-
+"""
 # split into train and test data
-X_train, X_test, y_train, y_test = train_test_split(new_train_locs, new_train_ids, train_size = 0.9, test_size=0.1)
-
+#X_train, X_test, y_train, y_test = train_test_split(new_train_locs, new_train_ids, train_size = 0.9, test_size=0.1)
+X_train, X_test, y_train, y_test = train_test_split(train_locs, train_ids2, train_size = 0.9, test_size=0.1)
 """
 depths = [10, 30, 50, 60, 80]
 
@@ -71,13 +79,28 @@ plt.ylabel('Accuracy')
 plt.show()
 """
 
-tree_classifier = tree.DecisionTreeClassifier(min_samples_leaf= 5)
+tcl2 = tree.DecisionTreeClassifier(min_samples_leaf= 5)
 
-tree_classifier.fit(X_train, y_train)
+tcl2.fit(X_train, y_train)
 
-class_probabilities = tree_classifier.predict_proba([X_test[27]])[0]
+predictions_p = tcl2.predict_proba(X_test)
+predictions = tcl2.predict(X_test)
 
-print(class_probabilities)
+location_index = 1
+
+print('proabilities in random location =', predictions_p[location_index])
+print('length of prediction array', len(predictions_p[location_index]))
+prob_indeces = []
+for index in range(len(predictions_p[location_index])):
+    if predictions_p[location_index][index] > 0:
+        prob_indeces.append(index)
+    else:
+        continue
+print('indeces with probability above 0 in loc =', prob_indeces)
+print('predicition in same random location =', predictions[location_index])
+print('index of prediction', np.where(range_list == predictions[location_index])[0])
+
+
 
 #predictions = tree_classifier.predict(X_test)
 
