@@ -53,11 +53,30 @@ def get_continent(lat: float, lon:float) -> Tuple[str, str]:
     #continent_code = pc.country_alpha2_to_continent_code(country_code) #Replaced these 3 lines for following code
     #continent_name = get_continent_name(continent_code)
     #return continent_name
+    """
+        try:
+        continent_name = pc.country_alpha2_to_continent_code(country_code)
 
+    except Exception as e:
+        # Special Case: Timor Leste
+        if e == "Invalid Country Alpha-2 code: \'TL\'":
+            continent_name = 'AS'
+        else:
+            continent_name = 'N/A'
+    """
     if country_code:
         continent_code = pc.country_alpha2_to_continent_code(country_code)
-        continent_name = get_continent_name(continent_code)
+        try:
+            continent_name = get_continent_name(continent_code)
+        except Exception as e:
+            if str(e) == '"Invalid Country Alpha-2 code: \'TL\'"':
+                continent_name = 'AS'
+            else:
+                continent_name = 'N/A'
         return continent_name
+    
+    
+
     else:
         # Handle unrecognized country code, assuming it's Antarctica
         return "Antarctica", "Antarctica"
