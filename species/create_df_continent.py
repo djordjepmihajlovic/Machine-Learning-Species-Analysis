@@ -109,8 +109,11 @@ for species_indices in train_inds_pos:
     continents_count = Counter(continents)
     most_common_continent = continents_count.most_common(1)[0][0]
 
-    species_df = species_df.append({'Species ID': species_idf, 'Species Name': species_namef, 'Continent': most_common_continent}, ignore_index=True)
+    #species_df = species_df.append({'Species ID': species_idf, 'Species Name': species_namef, 'Continent': most_common_continent}, ignore_index=True)
+    species_df = pd.concat([species_df, pd.DataFrame([{'Species ID': species_idf, 'Species Name': species_namef, 'Continent': most_common_continent}])], ignore_index=True)
 
+    #df = pd.DataFrame(df).append(new_row, ignore_index=True)
+    #df = pd.concat([df, pd.DataFrame([new_row])], ignore_index=True)
 
 # Save the species_df DataFrame to a CSV file
 species_df.to_csv('all_species_continent_data.csv', index=False)
