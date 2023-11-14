@@ -28,3 +28,36 @@ For the random forest, the results are:
     Mean ROC AUC is 0.9988412416134949
     PR AUC values are:  [0.0, 0.0, 0.0, 0.0, 0.004563900983205588]
     Mean PR AUC is 0.0009127801966411176
+
+
+Using threshold range (0-0.5)
+1. Sparsest:
+    random_forest.py:396: RuntimeWarning: invalid value encountered in true_divide
+        precision = true_p/(true_p+false_p)
+    ROC AUC values are:  [0.8538093257542605, 0.5472874994598346, 0.5710187397918208, 0.7998500609127543, 0.7500342800066697]
+    Mean ROC AUC is 0.7043999811850681
+    PR AUC values are:  [0.02292629298070643, nan, nan, nan, nan]
+    Mean PR AUC is nan
+
+2. Most dense
+    random_forest.py:173: RuntimeWarning: invalid value encountered in true_divide
+        precision = true_p/(true_p+false_p)
+    ROC AUC values are:  [0.6077582295779279, 0.7863591883936751, 0.662946502996754, 0.586746398844777, 0.8440902107276353]
+    Mean ROC AUC is 0.6975801061081539
+    PR AUC values are:  [nan, nan, nan, nan, nan]
+    Mean PR AUC is nan
+
+3. Largest Distance:
+    random_forest.py:248: RuntimeWarning: invalid value encountered in true_divide
+        precision = true_p/(true_p+false_p)
+    ROC AUC values are:  [0.6061595554047768, 0.6323479421962938, 0.6981058026272362, 0.8739430316965188, 0.6588428375133155]
+    Mean ROC AUC is 0.6938798338876282
+    PR AUC values are:  [nan, nan, 0.4350031017849394, 0.6190479079824083, 0.7721719702404397]
+
+4. Smallest Distance
+    random_forest.py:322: RuntimeWarning: invalid value encountered in true_divide
+        precision = true_p/(true_p+false_p)
+    ROC AUC values are:  [0.9999687630154104, 0.9997724658187739, 0.9999583495307379, 0.999974619421479, 0.9472380765870101]
+    Mean ROC AUC is 0.9893824548746822
+    PR AUC values are:  [0.0, 0.1056485802963975, 0.0, nan, 0.5841267903149363]
+    Mean PR AUC is nan

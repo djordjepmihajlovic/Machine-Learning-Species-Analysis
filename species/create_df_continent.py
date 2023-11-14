@@ -71,18 +71,31 @@ species_names = dict(zip(data['taxon_ids'], data['taxon_names']))
 
 species_df = pd.DataFrame(columns=['Species ID', 'Species Name', 'Continent']) #Should I add the number of 
 
+#_, species_counts = np.unique(train_ids, return_counts=True)
+#species_count = np.bincount(train_ids)
+
+#all_sp_list = []
+#i = 0
+
+#for n in species_count:
+#    if n < species_counts.max():
+ #       all_sp_list.append(i)
+  #  i = i + 1
+
+#print(len(all_sp_list))
 
 train_inds_pos = []
-for n in train_ids:
+for n in species:
     train_inds_pos.append(np.where(train_ids == n)[0])
 
-print(len(train_inds_pos))
+#print(len(train_inds_pos))
+#print(train_inds_pos[0])
+#print(train_inds_pos[1]) 
 
-"""
 i = 0
 for species_indices in train_inds_pos:
-    # Randomly select 5 indices from each species
-    train_inds_pos_sp = np.random.choice(species_indices, 5, replace=False)
+    # Randomly select 10 indices from each species
+    train_inds_pos_sp = np.random.choice(species_indices, 10, replace=False)
     species_idf = train_ids[i]
     species_namef = species_names[train_ids[i]]
     i += 1
@@ -102,4 +115,3 @@ for species_indices in train_inds_pos:
 # Save the species_df DataFrame to a CSV file
 species_df.to_csv('all_species_continent_data.csv', index=False)
 
-"""
