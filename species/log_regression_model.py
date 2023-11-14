@@ -1,10 +1,7 @@
 import numpy as np 
-from sklearn.neighbors import KNeighborsClassifier
+from sklearn.linear_model import LogisticRegression
 import matplotlib.pyplot as plt
-
-# necessary to get rid of annoying scipy warning
-from warnings import simplefilter
-simplefilter(action='ignore', category=FutureWarning)
+import pickle
 
 # load training data    
 data = np.load('species/species_train.npz')
@@ -20,18 +17,18 @@ test_locs = data_test['test_locs']
 num_locs = len(test_locs)
 test_pos_inds = dict(zip(data_test['taxon_ids'], data_test['test_pos_inds']))
 
-# k nearest neighbours classifier, optimal k found by examining F1 scores
-knn = KNeighborsClassifier(n_neighbors = 3)
-knn.fit(train_locs, train_ids)
+# logistic regression classifier
+with open('species/lr_model.pkl', 'rb') as f:
+    lr = pickle.load(f)
 # get probability values for each id and each test loc
-probs = knn.predict_proba(test_locs)
+probs = lr.predict_proba(test_locs)
 
 def errors(id, threshold):
     # array with 1s if species is present at that index in test_locs, 0 otherwise
     pos_inds = test_pos_inds[id]
     true = np.zeros(num_locs, dtype = int)
     true[pos_inds] = 1 
-    id_index = np.where(knn.classes_ == id)[0][0]
+    id_index = np.where(lr.classes_ == id)[0][0]
 
     # true postives, false positives, false negatives, true negatives
     tp, fp, tn, fn = (np.zeros(num_locs) for i in range (4))
@@ -55,6 +52,7 @@ def errors(id, threshold):
         print('tn: '+str(tn))
         print('fp: '+str(fp))
         print('fn: '+str(fn))
+        print(id)
     # compute precision, recall = tpr, fpr
     prec = tp/(tp+fp)
     rec = tp/(tp+fn)
@@ -62,8 +60,8 @@ def errors(id, threshold):
     return prec, rec, fpr
 
 # calculates precision, recall, false positive rate
-def accuracy_measures(id, num_thresholds):
-    thresholds = np.linspace(0, 0.3, num_thresholds)
+def accuracy_measures(id, num_thresholds, max):
+    thresholds = np.linspace(0, max, num_thresholds)
     precision_vals, recall_vals, false_postive_rate_vals = (np.zeros(num_thresholds) for i in range(3))
 
     i = 0
@@ -76,8 +74,8 @@ def accuracy_measures(id, num_thresholds):
     return precision_vals, recall_vals, false_postive_rate_vals
 
 # gets auc for precision-recall curve and roc
-def auc(id, num_thresholds):
-    prec, rec, fpr = accuracy_measures(id, num_thresholds)
+def auc(id, num_thresholds, max):
+    prec, rec, fpr = accuracy_measures(id, num_thresholds, max)
     pr_inds = np.argsort(rec)
     roc_inds = np.argsort(fpr)
 
@@ -104,8 +102,9 @@ for data in datasets:
     roc = np.zeros(5)
 
     for i in range(5):
-        pr[i] = auc(data[i], 20)[0]
-        roc[i] = auc(data[i], 20)[1]
+        x = auc(data[i], 20, 0.001)
+        pr[i] = x[0]
+        roc[i] = x[1]
 
     print(names[j])
     print('PR: ' + np.array2string(pr))
