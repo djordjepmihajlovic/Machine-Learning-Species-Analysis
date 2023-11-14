@@ -53,11 +53,30 @@ def get_continent(lat: float, lon:float) -> Tuple[str, str]:
     #continent_code = pc.country_alpha2_to_continent_code(country_code) #Replaced these 3 lines for following code
     #continent_name = get_continent_name(continent_code)
     #return continent_name
+    """
+        try:
+        continent_name = pc.country_alpha2_to_continent_code(country_code)
 
+    except Exception as e:
+        # Special Case: Timor Leste
+        if e == "Invalid Country Alpha-2 code: \'TL\'":
+            continent_name = 'AS'
+        else:
+            continent_name = 'N/A'
+    """
     if country_code:
         continent_code = pc.country_alpha2_to_continent_code(country_code)
-        continent_name = get_continent_name(continent_code)
+        try:
+            continent_name = get_continent_name(continent_code)
+        except Exception as e:
+            if str(e) == '"Invalid Country Alpha-2 code: \'TL\'"':
+                continent_name = 'AS'
+            else:
+                continent_name = 'N/A'
         return continent_name
+    
+    
+
     else:
         # Handle unrecognized country code, assuming it's Antarctica
         return "Antarctica", "Antarctica"
@@ -71,18 +90,31 @@ species_names = dict(zip(data['taxon_ids'], data['taxon_names']))
 
 species_df = pd.DataFrame(columns=['Species ID', 'Species Name', 'Continent']) #Should I add the number of 
 
+#_, species_counts = np.unique(train_ids, return_counts=True)
+#species_count = np.bincount(train_ids)
+
+#all_sp_list = []
+#i = 0
+
+#for n in species_count:
+#    if n < species_counts.max():
+ #       all_sp_list.append(i)
+  #  i = i + 1
+
+#print(len(all_sp_list))
 
 train_inds_pos = []
-for n in train_ids:
+for n in species:
     train_inds_pos.append(np.where(train_ids == n)[0])
 
-print(len(train_inds_pos))
+#print(len(train_inds_pos))
+#print(train_inds_pos[0])
+#print(train_inds_pos[1]) 
 
-"""
 i = 0
 for species_indices in train_inds_pos:
-    # Randomly select 5 indices from each species
-    train_inds_pos_sp = np.random.choice(species_indices, 5, replace=False)
+    # Randomly select 10 indices from each species
+    train_inds_pos_sp = np.random.choice(species_indices, 10, replace=False)
     species_idf = train_ids[i]
     species_namef = species_names[train_ids[i]]
     i += 1
@@ -96,10 +128,12 @@ for species_indices in train_inds_pos:
     continents_count = Counter(continents)
     most_common_continent = continents_count.most_common(1)[0][0]
 
-    species_df = species_df.append({'Species ID': species_idf, 'Species Name': species_namef, 'Continent': most_common_continent}, ignore_index=True)
+    #species_df = species_df.append({'Species ID': species_idf, 'Species Name': species_namef, 'Continent': most_common_continent}, ignore_index=True)
+    species_df = pd.concat([species_df, pd.DataFrame([{'Species ID': species_idf, 'Species Name': species_namef, 'Continent': most_common_continent}])], ignore_index=True)
 
+    #df = pd.DataFrame(df).append(new_row, ignore_index=True)
+    #df = pd.concat([df, pd.DataFrame([new_row])], ignore_index=True)
 
 # Save the species_df DataFrame to a CSV file
 species_df.to_csv('all_species_continent_data.csv', index=False)
 
-"""

@@ -16,6 +16,8 @@ from shapely.geometry import Point
 import seaborn as sns
 import pandas as pd
 
+#x = np.load()
+#print(x)
 
 #Load data
 data = np.load('species_train.npz')
@@ -131,17 +133,20 @@ print(Precision_list)
 #top 5 densest species: [38992, 29976, 8076, 145310, 4569]
 #top 5 largest distn species: [4208, 12716, 145300, 4636, 4146]
 #top 5 smallest distn species: [35990, 64387, 73903, 6364, 27696]
-sp_iden = [12716, 4535, 35990, 13851, 43567]
+#sp_iden = [12716, 4535, 35990, 13851, 43567]
+#sp_iden = [4535]
 
 most_sparse = [4345, 44570, 42961, 32861, 2071]
 most_dense =  [38992, 29976, 8076, 145310, 4569]
 larg_dist = [4208, 12716, 145300, 4636, 4146]
 small_dist = [35990, 64387, 73903, 6364, 27696]
 
+rng = 0.05
+
 #max_species = [most_sparse, most_dense, larg_dist, small_dist]
 
 #First doing most sparse species, I am going to do each species as before an then an average (print + graph)
-
+"""
 true_p = np.zeros((5, 20))
 true_n = np.zeros((5, 20))
 false_p = np.zeros((5, 20))
@@ -149,10 +154,10 @@ false_n = np.zeros((5, 20))
 total = np.zeros((5, 20))
 
 j = 0
-for id in most_dense: #####
+for id in most_sparse: #####
     id_inx = np.where(species == id)
     for i in range(len(test_locs)):
-        for idx, thr in enumerate(np.linspace(0.0, 0.05, 20)): #Maybe use 4 or 5 to start?
+        for idx, thr in enumerate(np.linspace(0.0, rng, 20)): #Maybe use 4 or 5 to start?
             if id in test_ids[i] and predictions_p[i][id_inx[0]] > thr:
                 true_p[j][idx] += 1
             elif id in test_ids[i] and predictions_p[i][id_inx[0]] < thr:
@@ -170,6 +175,15 @@ true_p_rate = true_p/(true_p + false_n)
 false_p_rate = false_p/(true_n + false_p)
 precision = true_p/(true_p+false_p)
 recall = true_p_rate
+
+prec = precision[0].tolist()
+rec = recall[0].tolist()
+tpr = true_p_rate[0].tolist()
+fpr = false_p_rate[0].tolist()
+plt.plot(rec, prec, color= 'r')
+plt.plot(fpr, tpr)
+plt.show()
+
 
 AUC = []
 
@@ -227,7 +241,7 @@ j = 0
 for id in larg_dist: #####
     id_inx = np.where(species == id)
     for i in range(len(test_locs)):
-        for idx, thr in enumerate(np.linspace(0.0, 0.05, 20)): #Maybe use 4 or 5 to start?
+        for idx, thr in enumerate(np.linspace(0.0, rng, 20)): #Maybe use 4 or 5 to start?
             if id in test_ids[i] and predictions_p[i][id_inx[0]] > thr:
                 true_p[j][idx] += 1
             elif id in test_ids[i] and predictions_p[i][id_inx[0]] < thr:
@@ -301,7 +315,7 @@ j = 0
 for id in small_dist: #####
     id_inx = np.where(species == id)
     for i in range(len(test_locs)):
-        for idx, thr in enumerate(np.linspace(0.0, 0.05, 20)): #Maybe use 4 or 5 to start?
+        for idx, thr in enumerate(np.linspace(0.0, rng, 20)): #Maybe use 4 or 5 to start?
             if id in test_ids[i] and predictions_p[i][id_inx[0]] > thr:
                 true_p[j][idx] += 1
             elif id in test_ids[i] and predictions_p[i][id_inx[0]] < thr:
@@ -375,7 +389,7 @@ j = 0
 for id in most_sparse: #####
     id_inx = np.where(species == id)
     for i in range(len(test_locs)):
-        for idx, thr in enumerate(np.linspace(0.0, 0.05, 20)): #Maybe use 4 or 5 to start?
+        for idx, thr in enumerate(np.linspace(0.0, rng, 20)): #Maybe use 4 or 5 to start?
             if id in test_ids[i] and predictions_p[i][id_inx[0]] > thr:
                 true_p[j][idx] += 1
             elif id in test_ids[i] and predictions_p[i][id_inx[0]] < thr:
@@ -439,6 +453,8 @@ plt.ylabel('AUC')
 plt.ylim(0, 1)
 plt.show()
 
+"""
+
 true_p = np.zeros((500, 20))
 true_n = np.zeros((500, 20))
 false_p = np.zeros((500, 20))
@@ -449,7 +465,7 @@ j = 0
 for id in species: #####
     id_inx = np.where(species == id)
     for i in range(len(test_locs)):
-        for idx, thr in enumerate(np.linspace(0.0, 0.05, 20)): #Maybe use 4 or 5 to start?
+        for idx, thr in enumerate(np.linspace(0.0, rng, 20)): #Maybe use 4 or 5 to start?
             if id in test_ids[i] and predictions_p[i][id_inx[0]] > thr:
                 true_p[j][idx] += 1
             elif id in test_ids[i] and predictions_p[i][id_inx[0]] < thr:
