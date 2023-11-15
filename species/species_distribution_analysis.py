@@ -246,10 +246,10 @@ def main():
         top_sparse_ID = [4345, 44570, 42961, 32861, 2071]
         top_sparse_data = [4.177038786428789e-05, 4.221188087170338e-05, 4.477237034420791e-05, 4.7904293356840265e-05, 4.95147014244629e-05]
 
-        sns.barplot(y=[math.log(i) for i in min_dist_data] + [math.log(i) for i in top_dist_data], x= min_ID + top_ID, color='blue' , linewidth=1, edgecolor = 'black')
+        sns.barplot(y=[(1/i) for i in top_sparse_data] + [(1/i) for i in top_dense_data], x= top_sparse_ID + top_dense_ID, color='blue' , linewidth=1, edgecolor = 'black')
         plt.xlabel('Species taxon ID')
-        plt.ylabel('Max. population' + '\n' + 'log span (km)')
-        plt.title('Logarithmic maximum species distribution.')
+        plt.ylabel('Area per species individual (km²)')
+        plt.title('Density of species.')
         plt.show()
 
     elif d == "extra":

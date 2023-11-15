@@ -86,3 +86,21 @@ PR: [0.         0.         0.         0.         0.00040652]
 PR mean: 8.130388823287408e-05
 ROC: [0.96024226 0.74146602 0.9100454  0.82271601 0.92072764]
 ROC mean: 0.8710394655199822
+
+
+For FFNN, the results are (I just did the mean directly in my code, probs shouldve saved individual ones whoops):
+1. For top 5 sparsest:
+    Mean ROC AUC is: 0.8838673788189455
+    Mean PR AUC is: 0.02311410729356262
+
+2. For top 5 most dense:
+    Mean ROC AUC is 0.9080670271172481
+    Mean PR AUC is 0.3566891002006113
+
+3. For top 5 largest distance:
+    Mean ROC AUC is 0.7398151304130265
+    Mean PR AUC is 0.3402472246427667
+
+4. For top 5 smallest distance:
+    Mean ROC AUC is 0.9973299627737877
+    Mean PR AUC is 0.0009417050896884918
