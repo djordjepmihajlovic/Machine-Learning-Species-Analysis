@@ -139,49 +139,57 @@ print(f"Top species to be observed at {location.address}: {found_sp}, with relat
 # 35990 gallotia stehlini
 # 4535 anous stolidus
 # 12716 turdus merula
-sp_idx = []
+sp_idx = [[],[],[],[]]
 sp_iden = [12716, 4535, 35990, 13851, 43567]
-for i in sp_iden:
-    sp_idx.append(list(labels).index(i))
+sp_iden = [[35990, 64387, 73903, 6364, 27696], [4208, 12716, 145300, 4636, 4146], [38992, 29976, 8076, 145310, 4569], [4345, 44570, 42961, 32861, 2071]]
+probs = ['Smallest distribution', 'Largest distribution', 'Densest population', 'Sparsest population']
+for num, i in enumerate(sp_iden):
+    for j in i:
+        sp_idx[num].append(list(labels).index(j))
 
 # accuracy for a specific species 
-true_p = np.zeros((5, 20))
-true_n = np.zeros((5, 20))
-false_p = np.zeros((5, 20))
-false_n = np.zeros((5, 20))
-total = np.zeros((5, 20))
+true_p = np.zeros((4, 20))
+true_n = np.zeros((4, 20))
+false_p = np.zeros((4, 20))
+false_n = np.zeros((4, 20))
+total = np.zeros((4, 20))
 
 # for idx, i in enumerate(labels): # iterate through all labels
-for species_no, sp_idx in enumerate(sp_idx):
-    for data in test_loader:
-        X, y = data # note ordering of j and i (kept confusing me yet again)
-        output = net(X.view(-1, 2))
-        for i in range(0, len(output)):
-            # for j in range(0, len(output[0])):
-            j = sp_idx
-            sp_choice = output[i][j].item() # choose species of evaluation
-            value_ = y[i][j]
+for counter, list_data in enumerate(sp_idx):
+    for species_no, sp_idx in enumerate(list_data):
+        for data in test_loader:
+            X, y = data # note ordering of j and i (kept confusing me yet again)
+            output = net(X.view(-1, 2))
+            for i in range(0, len(output)):
+                # for j in range(0, len(output[0])):
+                j = sp_idx
+                sp_choice = output[i][j].item() # choose species of evaluation
+                value_ = y[i][j]
 
-            for idx, specificity in enumerate(np.linspace(0.0, 0.05, 20)):
+                for idx, specificity in enumerate(np.linspace(0.0, 0.05, 20)):
 
-                if sp_choice >=specificity and value_ == 1: # if percentage prediction is < 25% of species being there then == 0 
-                    true_p[species_no][idx] += 1
+                    if sp_choice >=specificity and value_ == 1: # if percentage prediction is < 25% of species being there then == 0 
+                        true_p[counter][idx] += 1
 
-                elif sp_choice < specificity and value_ == 0:
-                    true_n[species_no][idx] += 1
+                    elif sp_choice < specificity and value_ == 0:
+                        true_n[counter][idx] += 1
 
-                elif sp_choice >= specificity and value_ == 0:
-                    false_p[species_no][idx] += 1
+                    elif sp_choice >= specificity and value_ == 0:
+                        false_p[counter][idx] += 1
 
-                elif sp_choice < specificity and value_ == 1:
-                    false_n[species_no][idx] += 1
+                    elif sp_choice < specificity and value_ == 1:
+                        false_n[counter][idx] += 1
 
-                total[species_no][idx] += 1
+                    total[counter][idx] += 1
 
-    print(f"Species {species_no} done.")
+        print(f"species analysis {species_no} done.")
+    print(f"species analysis {counter} done.")
 
 true_p_rate = true_p/(true_p + false_n)
 false_p_rate = false_p/(true_n + false_p)
+
+precision = true_p/(true_p +false_p)
+recall = true_p/(true_p + false_n)
 
 conf_mat = [[true_p[0][1]/(true_p[0][1]+false_n[0][1]), true_n[0][1]/(true_n[0][1]+false_p[0][1])], [false_p[0][1]/(true_n[0][1]+false_p[0][1]), false_n[0][1]/(false_n[0][1]+true_p[0][1])]] # ideal sensitivity
 conf_label = ['True', 'False']
@@ -202,19 +210,32 @@ sns.set_theme()
 # ax = plt.gca()
 # ax.set_ylim([0, 1.05])
 
-AUC = []
+AUCROC = []
 
-AUC.append(np.abs(np.trapz(y=true_p_rate[0].tolist(), x=false_p_rate[0].tolist())))
-AUC.append(np.abs(np.trapz(y=true_p_rate[1].tolist(), x=false_p_rate[1].tolist())))
-AUC.append(np.abs(np.trapz(y=true_p_rate[2].tolist(), x=false_p_rate[2].tolist())))
-AUC.append(np.abs(np.trapz(y=true_p_rate[3].tolist(), x=false_p_rate[3].tolist())))
-AUC.append(np.abs(np.trapz(y=true_p_rate[4].tolist(), x=false_p_rate[4].tolist())))
+AUCPR = []
 
-print(AUC)
+AUCROC.append(np.abs(np.trapz(y=true_p_rate[0].tolist(), x=false_p_rate[0].tolist())))
+AUCROC.append(np.abs(np.trapz(y=true_p_rate[1].tolist(), x=false_p_rate[1].tolist())))
+AUCROC.append(np.abs(np.trapz(y=true_p_rate[2].tolist(), x=false_p_rate[2].tolist())))
+AUCROC.append(np.abs(np.trapz(y=true_p_rate[3].tolist(), x=false_p_rate[3].tolist())))
 
-sns.barplot(x=sp_iden, y=AUC, color='b')
+AUCPR.append(np.abs(np.trapz(y=precision[0].tolist(), x=recall[0].tolist())))
+AUCPR.append(np.abs(np.trapz(y=precision[1].tolist(), x=recall[1].tolist())))
+AUCPR.append(np.abs(np.trapz(y=precision[2].tolist(), x=recall[2].tolist())))
+AUCPR.append(np.abs(np.trapz(y=precision[3].tolist(), x=recall[3].tolist())))
+
+print(AUCROC)
+
+print(AUCPR)
+
+sns.barplot(x=probs, y=AUCROC, color='b')
 plt.xlabel('Species')
 plt.ylabel('AUC-ROC')
+plt.show()
+
+sns.barplot(x=probs, y=AUCPR, color='b')
+plt.xlabel('Species')
+plt.ylabel('AUC-PR')
 plt.show()
 
 sns.heatmap(df_cm, cmap='Greys', annot=True)
