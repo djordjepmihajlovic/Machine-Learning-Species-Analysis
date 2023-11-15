@@ -29,6 +29,10 @@ For the random forest, the results are:
     PR AUC values are:  [0.0, 0.0, 0.0, 0.0, 0.004563900983205588]
     Mean PR AUC is 0.0009127801966411176
 
+5. For the totals:
+    Mean ROC AUC is 0.91673283
+    Mean PR AUC is nan... :()
+
 
 
 For knn:
