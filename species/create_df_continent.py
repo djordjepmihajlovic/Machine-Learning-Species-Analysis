@@ -34,7 +34,37 @@ def get_continent_name(continent_code: str) -> str:
     }
     return continent_dict[continent_code]
 
+def get_continent(lat: float, lon: float) -> Tuple[str, str]:
+    geolocator = Nominatim(user_agent="<username>@gmail.com", timeout=10)
+    geocode = RateLimiter(geolocator.reverse, min_delay_seconds=1)
 
+    try:
+        location = geocode(f"{lat}, {lon}", language="en")
+
+        # for cases where the location is not found, coordinates ASSUME antarctica!!!!!!!!!!!!!!??? Could be sea!
+        if location is None:
+            return "Antarctica", "Antarctica"
+
+        # extract country code
+        address = location.raw["address"]
+        country_code = address["country_code"].upper()
+
+        if country_code == 'TL':
+            continent_name = 'AS'
+            return continent_name
+        elif country_code:
+            continent_code = pc.country_alpha2_to_continent_code(country_code)
+            continent_name = get_continent_name(continent_code)
+            return continent_name
+        else:
+            return "Antarctica", "Antarctica"
+
+    except KeyError:
+        # Handle the KeyError here (e.g., print a message or return a default value)
+        print("KeyError: 'country_code' not found in address")
+        return "Unknown", "Unknown"
+
+"""
 def get_continent(lat: float, lon:float) -> Tuple[str, str]:
     geolocator = Nominatim(user_agent="<username>@gmail.com", timeout=10)
     geocode = RateLimiter(geolocator.reverse, min_delay_seconds=1)
@@ -49,11 +79,23 @@ def get_continent(lat: float, lon:float) -> Tuple[str, str]:
     address = location.raw["address"]
     country_code = address["country_code"].upper()
 
+    if country_code == 'TL':
+        continent_name = 'AS'
+        return continent_name
+    elif country_code:
+        continent_code = pc.country_alpha2_to_continent_code(country_code)
+        continent_name = get_continent_name(continent_code)
+        return continent_name
+    else:
+        return "Antarctica", "Antarctica"
+    
+
     # get continent code from country code
     #continent_code = pc.country_alpha2_to_continent_code(country_code) #Replaced these 3 lines for following code
     #continent_name = get_continent_name(continent_code)
     #return continent_name
-    """
+"""
+"""
         try:
         continent_name = pc.country_alpha2_to_continent_code(country_code)
 
@@ -78,16 +120,7 @@ def get_continent(lat: float, lon:float) -> Tuple[str, str]:
     else:
         # Handle unrecognized country code, assuming it's Antarctica
         return "Antarctica", "Antarctica"
-    """
-    if country_code == 'TL':
-        continent_name = 'AS'
-        return continent_name
-    elif country_code:
-        continent_code = pc.country_alpha2_to_continent_code(country_code)
-        continent_name = get_continent_name(continent_code)
-        return continent_name
-    else:
-        return "Antarctica", "Antarctica"
+"""
 
 
 data = np.load('species_train.npz')
@@ -141,7 +174,8 @@ for species_indices in train_inds_pos:
 
     #df = pd.DataFrame(df).append(new_row, ignore_index=True)
     #df = pd.concat([df, pd.DataFrame([new_row])], ignore_index=True)
-    #if i > :
+    print('Done species :', i)
+    #if i > 100:
     #    break
 
 # Save the species_df DataFrame to a CSV file
