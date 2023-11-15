@@ -18,7 +18,7 @@ import pandas as pd
 
 #x = np.load()
 #print(x)
-
+"""
 #Load data
 data = np.load('species_train.npz')
 train_locs = data['train_locs']          
@@ -85,14 +85,63 @@ rdf = RandomForestClassifier(n_estimators = 100, criterion = 'gini', max_depth =
 #############################################################################################################################################
 rdf.fit(new_train_locs, new_train_ids)
 
-predictions = rdf.predict(test_locs)
+#predictions = rdf.predict(test_locs)
 
-predictions_p = rdf.predict_proba(test_locs)
+#predictions_p = rdf.predict_proba(test_locs)
 
 test_ids = [] #Uses the new reverse dictionary to create set ids to each of the test locations
 for index in range(len(test_locs)):
     test_id = reverse_test_pos_inds.get(index)
     test_ids.append(test_id)
+
+
+id = 12716 # turdus merula
+index_TM = spec_dict.get(id)
+id_index = np.where(rdf.classes_ == index_TM)[0][0] ### OBVIAMENTE ESTO NO FUNCIONA...
+print(id_index)
+"""
+
+n_gridpoints = 500
+lats = np.linspace(-90, 90, n_gridpoints)
+longs = np.linspace(-180, 180, n_gridpoints)
+#pvals = np.zeros((n_gridpoints, n_gridpoints))
+"""
+for i in range(n_gridpoints):
+    for j in range(n_gridpoints):
+        pvals[i,j] = rdf.predict_proba(np.array([lats[i], longs[j]]).reshape(1,-1))[0, id_index]
+"""
+#file_path = 'pvals.npy'
+
+# Save the pvals array to the specified file
+#np.save(file_path, pvals)
+
+pvals = np.load('pvals.npy')
+#print(pvals.max())
+#print(pvals.min())
+
+X, Y = np.meshgrid(longs, lats)
+world = gpd.read_file(gpd.datasets.get_path('naturalearth_lowres')) 
+ax = world.plot(figsize=(10, 6))
+ax.set_xticks([])
+ax.set_yticks([])
+cs = ax.contourf(X, Y, pvals, levels = np.linspace(0.01, 0.2, 10), alpha = 0.5, cmap = 'plasma')
+#ax.clabel(cs, inline = True)
+plt.show() 
+
+
+"""
+sp = 12716
+test_inds_pos_TM = np.where(predictions == sp)[0]
+
+geometry = [Point(xy) for xy in zip(test_locs[test_inds_pos_TM, 1], test_locs[test_inds_pos_TM, 0])] # gets list of (lat,lon) pairs
+gdf = GeoDataFrame(geometry=geometry) # creates geopandas dataframe of these pairs
+
+world = gpd.read_file(gpd.datasets.get_path('naturalearth_lowres')) # world map included with geopandas, could download other maps
+gdf.plot(ax=world.plot(figsize=(10, 6)), marker='o', color='k', markersize=5)
+plt.title(str(sp) + ' - ' + species_names[sp])
+plt.show()
+"""
+
 
 """
 threshold = 0.001
@@ -136,12 +185,12 @@ print(Precision_list)
 #sp_iden = [12716, 4535, 35990, 13851, 43567]
 #sp_iden = [4535]
 
-most_sparse = [4345, 44570, 42961, 32861, 2071]
-most_dense =  [38992, 29976, 8076, 145310, 4569]
-larg_dist = [4208, 12716, 145300, 4636, 4146]
-small_dist = [35990, 64387, 73903, 6364, 27696]
+#most_sparse = [4345, 44570, 42961, 32861, 2071]
+#most_dense =  [38992, 29976, 8076, 145310, 4569]
+#larg_dist = [4208, 12716, 145300, 4636, 4146]
+#small_dist = [35990, 64387, 73903, 6364, 27696]
 
-rng = 0.05
+#rng = 0.05
 
 #max_species = [most_sparse, most_dense, larg_dist, small_dist]
 
@@ -454,7 +503,7 @@ plt.ylim(0, 1)
 plt.show()
 
 """
-
+"""
 true_p = np.zeros((500, 20))
 true_n = np.zeros((500, 20))
 false_p = np.zeros((500, 20))
@@ -523,7 +572,7 @@ plt.xlabel('TOTAL AVERAGES')###############
 plt.ylabel('AUC')
 plt.ylim(0, 1)
 plt.show()
-
+"""
 """
 #prec1 = precision[2].tolist()
 #rec1 = recall[2].tolist()
@@ -659,18 +708,7 @@ print('Total False negative:', fn)
 
 """
 
-"""
-sp = 12716
-test_inds_pos_TM = np.where(predictions == sp)[0]
 
-geometry = [Point(xy) for xy in zip(test_locs[test_inds_pos_TM, 1], test_locs[test_inds_pos_TM, 0])] # gets list of (lat,lon) pairs
-gdf = GeoDataFrame(geometry=geometry) # creates geopandas dataframe of these pairs
-
-world = gpd.read_file(gpd.datasets.get_path('naturalearth_lowres')) # world map included with geopandas, could download other maps
-gdf.plot(ax=world.plot(figsize=(10, 6)), marker='o', color='k', markersize=5)
-plt.title(str(sp) + ' - ' + species_names[sp])
-plt.show()
-"""
 
 
 
