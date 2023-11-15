@@ -63,7 +63,7 @@ def get_continent(lat: float, lon:float) -> Tuple[str, str]:
             continent_name = 'AS'
         else:
             continent_name = 'N/A'
-    """
+    
     if country_code:
         continent_code = pc.country_alpha2_to_continent_code(country_code)
         try:
@@ -77,6 +77,16 @@ def get_continent(lat: float, lon:float) -> Tuple[str, str]:
     
     else:
         # Handle unrecognized country code, assuming it's Antarctica
+        return "Antarctica", "Antarctica"
+    """
+    if country_code == 'TL':
+        continent_name = 'AS'
+        return continent_name
+    elif country_code:
+        continent_code = pc.country_alpha2_to_continent_code(country_code)
+        continent_name = get_continent_name(continent_code)
+        return continent_name
+    else:
         return "Antarctica", "Antarctica"
 
 
@@ -113,8 +123,8 @@ i = 0
 for species_indices in train_inds_pos:
     # Randomly select 10 indices from each species
     train_inds_pos_sp = np.random.choice(species_indices, 10, replace=False)
-    species_idf = train_ids[i]
-    species_namef = species_names[train_ids[i]]
+    species_idf = species[i]
+    species_namef = species_names[species[i]]
     i += 1
     continents = []
     # Loop through the selected indices for the current species
@@ -131,6 +141,8 @@ for species_indices in train_inds_pos:
 
     #df = pd.DataFrame(df).append(new_row, ignore_index=True)
     #df = pd.concat([df, pd.DataFrame([new_row])], ignore_index=True)
+    #if i > :
+    #    break
 
 # Save the species_df DataFrame to a CSV file
 species_df.to_csv('all_species_continent_data.csv', index=False)
