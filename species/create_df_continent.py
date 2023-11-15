@@ -75,8 +75,6 @@ def get_continent(lat: float, lon:float) -> Tuple[str, str]:
                 continent_name = 'N/A'
         return continent_name
     
-    
-
     else:
         # Handle unrecognized country code, assuming it's Antarctica
         return "Antarctica", "Antarctica"
