@@ -21,7 +21,7 @@ for indx in train_ids:
     x = spec_dict.get(indx)
     train_ids_v2.append(x)
 train_ids_v3 = np.array(train_ids_v2)
-
+"""
 mean_train = 544
 species_count = np.bincount(train_ids) 
 sp_list_a = [] 
@@ -55,6 +55,7 @@ for sp_indices in train_inds_pos_b:
 flat_wanted_indices = [item for sublist in wanted_indices for item in sublist]
 new_train_locs = train_locs[flat_wanted_indices]
 new_train_ids = train_ids_v3[flat_wanted_indices]
+"""
 
 data_test = np.load('species_test.npz', allow_pickle=True)
 test_locs = data_test['test_locs']
@@ -67,10 +68,10 @@ for index in range(len(test_locs)):
     test_id = reverse_test_pos_inds.get(index)
     test_ids.append(test_id)
 
-rdf = RandomForestClassifier(n_estimators = 100, criterion = 'gini', max_depth = 15) #, class_weight="balanced_subsample")
+rdf = RandomForestClassifier(n_estimators = 100, criterion = 'gini', max_depth = 15, class_weight="balanced_subsample")
 
-rdf.fit(new_train_locs, new_train_ids)
-#rdf.fit(train_locs, train_ids_v3)
+#rdf.fit(new_train_locs, new_train_ids)
+rdf.fit(train_locs, train_ids_v3)
 
 predictions_p = rdf.predict_proba(test_locs)
 
@@ -91,7 +92,8 @@ thr = 0.05
 
 
 #all_lists = [NA_species, EU_species, OC_species, AF_species, SA_species, AS_species, most_sparse, most_dense, larg_dist, small_dist]
-all_lists = [AN_species]
+#all_lists = [AN_species]
+all_lists = [species]
 
 csv_filename = 'totalcf_data.csv'
 with open(csv_filename, 'w', newline='') as csvfile:
