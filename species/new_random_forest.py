@@ -90,8 +90,8 @@ small_dist = [35990, 64387, 73903, 6364, 27696]
 thr = 0.05
 
 
-all_lists = [NA_species, EU_species, OC_species, AF_species, SA_species, AS_species, most_sparse, most_dense, larg_dist, small_dist]
-#all_lists = [AN_species]
+#all_lists = [NA_species, EU_species, OC_species, AF_species, SA_species, AS_species, most_sparse, most_dense, larg_dist, small_dist]
+all_lists = [AN_species]
 
 csv_filename = 'totalcf_data.csv'
 with open(csv_filename, 'w', newline='') as csvfile:
