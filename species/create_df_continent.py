@@ -30,7 +30,7 @@ train_locs = data['train_locs']
 train_ids = data['train_ids']               
 species = data['taxon_ids']      
 species_names = dict(zip(data['taxon_ids'], data['taxon_names'])) 
-
+"""
 _, species_counts = np.unique(train_ids, return_counts=True)
 species_count = np.bincount(train_ids)
 
@@ -58,15 +58,27 @@ continent_counts = filter1['Continent'].value_counts()
 print(continent_counts)
 
 
+"""
+
+# Filter the DataFrame to get species IDs for entries where the continent is 'Europe'
+europe_species_ids = df.loc[df['Continent'] == 'South America', 'Species ID'].tolist()
+
+# Print or use the list of species IDs for Europe as needed
+#print(europe_species_ids)
+i = 0
+for id in europe_species_ids:
+    index = np.where(train_ids == id)
+    #print(index)
+    x = len(index[0])
+    #print(x)
+    i += x
+
+print(i)
 
 
 
-
-
-
-
-
-
+index = np.where(train_ids == 54549)
+print(len(index[0]))
 
 
 """
