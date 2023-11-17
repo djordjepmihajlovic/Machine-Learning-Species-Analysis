@@ -69,8 +69,8 @@ for index in range(len(test_locs)):
 
 rdf = RandomForestClassifier(n_estimators = 100, criterion = 'gini', max_depth = 15, class_weight="balanced_subsample")
 
-#rdf.fit(new_train_locs, new_train_ids)
-rdf.fit(train_locs, train_ids_v3)
+rdf.fit(new_train_locs, new_train_ids)
+#rdf.fit(train_locs, train_ids_v3)
 
 predictions_p = rdf.predict_proba(test_locs)
 
