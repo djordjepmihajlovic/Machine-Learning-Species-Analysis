@@ -15,7 +15,7 @@ from geopandas import GeoDataFrame
 from shapely.geometry import Point
 import seaborn as sns
 import pandas as pd
-
+import csv
 
 #Load data
 data = np.load('species_train.npz')
@@ -33,7 +33,7 @@ for indx in train_ids:
 train_ids_v3 = np.array(train_ids_v2)
 
 #Balance data
-
+"""
 mean_train = 544
 species_count = np.bincount(train_ids) 
 sp_list_a = [] 
@@ -67,7 +67,7 @@ for sp_indices in train_inds_pos_b:
 flat_wanted_indices = [item for sublist in wanted_indices for item in sublist]
 new_train_locs = train_locs[flat_wanted_indices]
 new_train_ids = train_ids_v3[flat_wanted_indices]
-
+"""
 #Load test data plus reverse dictionary
 
 data_test = np.load('species_test.npz', allow_pickle=True)
@@ -76,13 +76,13 @@ test_pos_inds = dict(zip(data_test['taxon_ids'], data_test['test_pos_inds']))
 with open('reverse_dict.pkl', 'rb') as file:
     reverse_test_pos_inds = pickle.load(file)
 
-rdf = RandomForestClassifier(n_estimators = 100, criterion = 'gini', max_depth = 15)
+rdf = RandomForestClassifier(n_estimators = 100, criterion = 'gini', max_depth = 15, class_weight="balanced_subsample")
 #############################################################################################################################################
 # Should keep working on best parameters for max_depth and eventually do it with 100 estimators.
 # Using max depth = 18, from graph I think 15 could be argued as good accuracy without over fitting too much
 #############################################################################################################################################
-rdf.fit(new_train_locs, new_train_ids)
-#rdf.fit(train_locs, train_ids_v3) #### Trying without balancing the data!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+#rdf.fit(new_train_locs, new_train_ids)
+rdf.fit(train_locs, train_ids_v3)
 
 #predictions = rdf.predict(test_locs)
 
@@ -94,23 +94,113 @@ for index in range(len(test_locs)):
     test_ids.append(test_id)
 
 
-#5 species NA: [890, 10243, 11586, 42223, 15035]
-#5 species Europe: [13851, 472766, 67819, 117054, 201178]
-#5 species Oceania:  [508981, 20504, 12526, 40908, 1692]
-#5 species Africa: [12832, 14104, 2203, 3813, 4309]
-#5 species South America = [16006, 5612, 14881, 10079, 20535]
-#5 species Asia = [12821, 8277, 8079, 204523, 113754]
-#1 species in Antarctica = [54549]
 
-NA_species = [890, 10243, 11586, 42223, 15035]
-EU_species = [13851, 472766, 67819, 117054, 201178]
-OC_species = [508981, 20504, 12526, 40908, 1692]
-AF_species = [12832, 14104, 2203, 3813, 4309]
-SA_species = [16006, 5612, 14881, 10079, 20535]
-AS_species = [12821, 8277, 8079, 204523, 113754]
-AN_species = [54549]
-
+#NA_species = [890, 10243, 11586, 42223, 15035]
+#EU_species = [13851, 472766, 67819, 117054, 201178]
+#OC_species = [508981, 20504, 12526, 40908, 1692]
+#AF_species = [12832, 14104, 2203, 3813, 4309]
+#SA_species = [16006, 5612, 14881, 10079, 20535]
+#AS_species = [12821, 8277, 8079, 204523, 113754]
+#AN_species = [54549]
+most_sparse = [4345, 44570, 42961, 32861, 2071]
+most_dense =  [38992, 29976, 8076, 145310, 4569]
+larg_dist = [4208, 12716, 145300, 4636, 4146]
+small_dist = [35990, 64387, 73903, 6364, 27696]
+#Plus total!
+all_lists = [most_sparse, most_dense, larg_dist, small_dist]
 rng = 0.05
+csv_filename1 = 'cf_ditr_data.csv'
+with open(csv_filename1, 'w', newline='') as csvfile:
+    csv_writer = csv.writer(csvfile, delimiter=',')
+
+    k = 1
+    for list in all_lists:
+        true_p = np.zeros((5, 20))
+        true_n = np.zeros((5, 20))
+        false_p = np.zeros((5, 20))
+        false_n = np.zeros((5, 20))
+        total = np.zeros((5, 20))
+
+        j = 0
+        for id in most_sparse: #####
+            id_inx = np.where(species == id)
+            for i in range(len(test_locs)):
+                for idx, thr in enumerate(np.linspace(0.0, rng, 20)): #Maybe use 4 or 5 to start?
+                    if id in test_ids[i] and predictions_p[i][id_inx[0]] > thr:
+                        true_p[j][idx] += 1
+                    elif id in test_ids[i] and predictions_p[i][id_inx[0]] < thr:
+                        false_n[j][idx] += 1
+                    elif id not in test_ids[i] and predictions_p[i][id_inx[0]] > thr:
+                        false_p[j][idx] += 1
+                    elif id not in test_ids[i] and predictions_p[i][id_inx[0]] < thr:
+                        true_n[j][idx] += 1
+            j += 1
+            print(f"Species {j} done.")
+
+        true_p_rate = true_p/(true_p + false_n)
+        false_p_rate = false_p/(true_n + false_p)
+        precision = true_p/(true_p+false_p)
+        recall = true_p_rate
+
+        AUC = []
+        for i in range(len(most_sparse)):
+            AUC.append(np.abs(np.trapz(y=true_p_rate[i].tolist(), x=false_p_rate[i].tolist())))
+        mean_AUC_ROC = sum(AUC)/len(AUC)
+
+        PR_AUC = []
+        for i in range(len(most_sparse)):
+            PR_AUC.append(np.abs(np.trapz(y=precision[i].tolist(), x=recall[i].tolist())))
+        mean_AUC_PR = sum(PR_AUC)/len(PR_AUC)
+
+        csv_writer.writerow([f'Iteration {k}'])
+        csv_writer.writerow([mean_AUC_ROC])
+        csv_writer.writerow([mean_AUC_PR])
+
+csv_filename2 = 'cf_tot_data.csv'
+with open(csv_filename1, 'w', newline='') as csvfile:
+    csv_writer = csv.writer(csvfile, delimiter=',')
+
+    true_p = np.zeros((500, 20))
+    true_n = np.zeros((500, 20))
+    false_p = np.zeros((500, 20))
+    false_n = np.zeros((500, 20))
+    total = np.zeros((500, 20))
+
+    j = 0
+    for id in species: #####
+        id_inx = np.where(species == id)
+        for i in range(len(test_locs)):
+            for idx, thr in enumerate(np.linspace(0.0, rng, 20)): #Maybe use 4 or 5 to start?
+                if id in test_ids[i] and predictions_p[i][id_inx[0]] > thr:
+                    true_p[j][idx] += 1
+                elif id in test_ids[i] and predictions_p[i][id_inx[0]] < thr:
+                    false_n[j][idx] += 1
+                elif id not in test_ids[i] and predictions_p[i][id_inx[0]] > thr:
+                    false_p[j][idx] += 1
+                elif id not in test_ids[i] and predictions_p[i][id_inx[0]] < thr:
+                    true_n[j][idx] += 1
+        j += 1
+        print(f"Species {j} done.")
+        
+    true_p_rate = true_p/(true_p + false_n)
+    false_p_rate = false_p/(true_n + false_p)
+    precision = true_p/(true_p+false_p)
+    recall = true_p_rate
+
+    AUC = []
+    for i in range(len(species)):
+        AUC.append(np.abs(np.trapz(y=true_p_rate[i].tolist(), x=false_p_rate[i].tolist())))
+    mean_AUC_ROC = sum(AUC)/len(AUC) 
+
+    PR_AUC = []
+    for i in range(len(species)):
+        PR_AUC.append(np.abs(np.trapz(y=precision[i].tolist(), x=recall[i].tolist())))
+    mean_AUC_PR = sum(PR_AUC)/len(PR_AUC)
+    csv_writer.writerow([f'Iteration 1'])
+    csv_writer.writerow([mean_AUC_ROC])
+    csv_writer.writerow([mean_AUC_PR])
+
+
 """
 true_p = np.zeros((5, 20))
 true_n = np.zeros((5, 20))
@@ -1166,7 +1256,3 @@ print(FPR_list)
 print(Precision_list)
 """
 
-#most_sparse = [4345, 44570, 42961, 32861, 2071]
-#most_dense =  [38992, 29976, 8076, 145310, 4569]
-#larg_dist = [4208, 12716, 145300, 4636, 4146]
-#small_dist = [35990, 64387, 73903, 6364, 27696]
