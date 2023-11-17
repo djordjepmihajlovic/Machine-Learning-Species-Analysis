@@ -1,8 +1,12 @@
-import numpy as np
-import matplotlib.pyplot as plt
-import geopandas as gpd
+import numpy as np 
 from sklearn.neighbors import KNeighborsClassifier
+import matplotlib.pyplot as plt
+from sklearn.metrics import f1_score
 
+# necessary to get rid of annoying scipy warning
+from warnings import simplefilter
+simplefilter(action='ignore', category=FutureWarning)
+   
 #Load data
 data = np.load('species/species_train.npz')
 train_locs = data['train_locs']          
@@ -57,32 +61,42 @@ new_train_ids = train_ids_v3[flat_wanted_indices]
 # test data
 data_test = np.load('species/species_test.npz', allow_pickle=True) 
 test_locs = data_test['test_locs']
+test_ids = data_test['taxon_ids']
+test_species = np.unique(test_ids)
 num_locs = len(test_locs)
 test_pos_inds = dict(zip(data_test['taxon_ids'], data_test['test_pos_inds']))
 
-# k nearest neighbours classifier, optimal k found by examining F1 scores
-knn = KNeighborsClassifier(n_neighbors = 50)
-knn.fit(new_train_locs, new_train_ids)
+def errors(id, threshold, probs):
+    # array with 1s if species is present at that index in test_locs, 0 otherwise
+    pos_inds = test_pos_inds[id]
+    true = np.zeros(num_locs, dtype = int)
+    true[pos_inds] = 1 
+    id_index = spec_dict[id]
 
-id = 12716 # turdus merula
-id_index = spec_dict[id]
+    # predicted probabilities
+    pred = np.zeros(num_locs)
+    probs_bin = (probs >= threshold).astype(int)
+    pred = probs_bin[:,id_index]
 
-n_gridpoints = 1000
-lats = np.linspace(-90, 90, n_gridpoints)
-longs = np.linspace(-180, 180, n_gridpoints)
-pvals = np.zeros((n_gridpoints, n_gridpoints))
+    f1 = f1_score(true, pred)
+    return f1
 
-for i in range(n_gridpoints):
-    for j in range(n_gridpoints):
-        pvals[i,j] = knn.predict_proba(np.array([lats[i], longs[j]]).reshape(1,-1))[0, id_index]
-X, Y = np.meshgrid(longs, lats)
-world = gpd.read_file(gpd.datasets.get_path('naturalearth_lowres')) 
-ax = world.plot(figsize=(10, 6))
-ax.set_xticks([])
-ax.set_yticks([])
-num_levels = np.floor(np.max(pvals)*50)
-spacing = (num_levels/10)/50
-cs = ax.contourf(X, Y, pvals, levels = np.arange(1.5/50, 16.5/50, 1.5/50), alpha = 0.5, cmap = 'plasma')
-#ax.clabel(cs, inline = True)
-plt.show() 
-#plt.savefig('knn_plot.png')
+
+k_vals = np.array([3,5,7,10,25,50,75,100])
+mean_vals = np.zeros(len(k_vals))
+for k in k_vals:
+    # k nearest neighbours classifier
+    knn = KNeighborsClassifier(n_neighbors = k)
+    knn.fit(new_train_locs, new_train_ids)
+    # get probability values for each id and each test loc
+    probs = knn.predict_proba(test_locs)
+    f1 = np.zeros(len(test_species))
+    for i in range(len(test_species)):
+        f1[i] = errors(test_species[i], 1/(k_vals[i]), probs)
+    mean_vals[np.where(k_vals == k)[0][0]] = np.mean(f1)
+    print(str(k)+' done...')
+plt.xlabel(r'$k$', fontsize = 10)
+plt.ylabel('Mean F1 score', fontsize = 10)
+plt.plot(k_vals, mean_vals, marker='o', color = 'k')
+#plt.savefig('knn_f1_scores.png')
+plt.show()
