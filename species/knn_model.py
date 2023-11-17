@@ -60,6 +60,8 @@ new_train_ids = train_ids_v3[flat_wanted_indices]
 # test data
 data_test = np.load('species/species_test.npz', allow_pickle=True) 
 test_locs = data_test['test_locs']
+test_ids = data_test['taxon_ids']
+test_species = np.unique(test_ids)
 num_locs = len(test_locs)
 test_pos_inds = dict(zip(data_test['taxon_ids'], data_test['test_pos_inds']))
 
@@ -68,6 +70,8 @@ knn = KNeighborsClassifier(n_neighbors = 4)
 knn.fit(new_train_locs, new_train_ids)
 # get probability values for each id and each test loc
 probs = knn.predict_proba(test_locs)
+
+num_thresholds = 20
 
 def errors(id, threshold):
     # array with 1s if species is present at that index in test_locs, 0 otherwise
@@ -98,42 +102,90 @@ def errors(id, threshold):
         print('tn: '+str(tn))
         print('fp: '+str(fp))
         print('fn: '+str(fn))
-    # compute precision, recall = tpr, fpr
-    prec = tp/(tp+fp)
-    rec = tp/(tp+fn)
-    fpr = fp/(fp+tn)
-    return prec, rec, fpr
 
-# calculates precision, recall, false positive rate
-def accuracy_measures(id, num_thresholds):
-    thresholds = np.linspace(0, 0.5, num_thresholds)
-    precision_vals, recall_vals, false_postive_rate_vals = (np.zeros(num_thresholds) for i in range(3))
+    return tp, tn, fp, fn
+
+def pr_auc(id, threshold):
+    thresholds = np.linspace(0, threshold, num_thresholds)
+    prec = np.zeros(num_thresholds)
+    rec = np.zeros(num_thresholds)
 
     i = 0
     for t in thresholds:
-        acc = errors(id, t)
-        precision_vals[i] = acc[0]
-        recall_vals[i] = acc[1]
-        false_postive_rate_vals[i] = acc[2]
+        tp, tn, fp, fn = errors(id, t)
+        prec[i] = tp/(tp+fp)
+        rec[i] = tp/(tp+fn)
         i += 1
-    return precision_vals, recall_vals, false_postive_rate_vals
+    
+    prec = prec[np.argsort(rec)]
+    rec = np.sort(rec)
 
-# gets auc for precision-recall curve and roc
-def auc(id, num_thresholds):
-    prec, rec, fpr = accuracy_measures(id, num_thresholds)
-    pr_inds = np.argsort(rec)
-    roc_inds = np.argsort(fpr)
+    pr_auc = np.trapz(prec, rec)
+    return pr_auc
 
-    prec = prec[pr_inds]
-    tpr = rec[roc_inds]
-    rec = rec[pr_inds]
-    fpr = fpr[roc_inds]
-     
-    auc_pr = np.trapz(prec, rec)
-    auc_roc = np.trapz(tpr, fpr)
-    return auc_pr, auc_roc
+def roc_auc(id, threshold):
+    thresholds = np.linspace(0, threshold, num_thresholds)
+    tpr = np.zeros(num_thresholds)
+    fpr = np.zeros(num_thresholds)
 
-# ids under consideration
+    i = 0
+    for t in thresholds:
+        tp, tn, fp, fn = errors(id, t)
+        fpr[i] = fp/(tn+fp)
+        tpr[i] = tp/(tp+fn)
+        i += 1
+    
+    tpr = tpr[np.argsort(fpr)]
+    fpr = np.sort(fpr)
+
+    roc_auc = np.trapz(tpr, fpr)
+    return roc_auc
+
+def fscore(id, threshold):
+    tp, tn, fp, fn = errors(id, threshold)
+    prec = tp/(tp+fp)
+    rec = tp/(tp+fn)
+    fscore = (2 * prec * rec)/(prec + rec)
+    return fscore
+
+def kappa(id, threshold):
+    tp, tn, fp, fn = errors(id, threshold)
+    t = tp + tn + fp + fn
+    kappa = ((tp+fp)*(tp+fn) + (tn+fn)*(tn+fp))/(t**2)
+    return kappa
+
+def get_measures(id, threshold):
+    pr = pr_auc(id, threshold)
+    roc = roc_auc(id, threshold)
+    f = fscore(id, threshold)
+    k = kappa(id, threshold)
+    return pr, roc, f, k
+
+pr, roc, f1, k = (np.zeros(len(test_species)) for i in range(4)) 
+i = 0
+for id in test_species:
+    pr[i], roc[i], f1[i], k[i] = get_measures(id, 0.5) 
+    i += 1
+
+print('ROCAUC all species mean: ' + str(np.mean(roc)))
+print('PRAUC all species mean: ' + str(np.mean(pr)))
+print('F-score all species mean: ' + str(np.mean(f1)))
+print('Kappa all species mean: ' + str(np.mean(k)))
+print('\n')
+
+with open('data.txt', 'a') as f:
+    f.write('ROCAUC all species mean: ' + str(np.mean(roc))+'\n')
+    f.write('PRAUC all species mean: ' + str(np.mean(pr))+'\n')
+    f.write('F-score all species mean: ' + str(np.mean(f1))+'\n')
+    f.write('Kappa all species mean: ' + str(np.mean(k))+'\n')
+    f.write('\n')
+
+np.save('knn_roc', roc)
+np.save('knn_pr', pr)
+np.save('knn_fscore', f1)
+np.save('knn_kappa', k)
+
+# top 5 ids for different categories
 sparsest = [4345, 44570, 42961, 32861, 2071]
 densest = [38992, 29976, 8076, 145310, 4569]
 largest = [4208, 12716, 145300, 4636, 4146]
@@ -143,17 +195,37 @@ names = ['sparsest', 'densest', 'largest', 'smallest']
 
 j = 0
 for data in datasets:
-    pr = np.zeros(5)
-    roc = np.zeros(5)
-
+    inds = np.zeros(5)
     for i in range(5):
-        pr[i] = auc(data[i], 20)[0]
-        roc[i] = auc(data[i], 20)[1]
+        inds[i] = spec_dict[data[i]]
+    inds = inds.astype(int)
+
+    top_5_pr = pr[inds]
+    top_5_roc = roc[inds] 
+    top_5_f = f1[inds] 
+    top_5_k = k[inds] 
 
     print(names[j])
-    print('PR: ' + np.array2string(pr))
-    print('PR mean: ' + str(np.mean(pr)))
-    print('ROC: ' + np.array2string(roc))
-    print('ROC mean: ' + str(np.mean(roc)))
-    print('*****')
+    print('ROC: ' + np.array2string(top_5_roc))
+    print('ROC mean: ' + str(np.mean(top_5_roc)))
+    print('PR: ' + np.array2string(top_5_pr))
+    print('PR mean: ' + str(np.mean(top_5_pr)))
+    print('F-score: ' + np.array2string(top_5_f))
+    print('F-score mean: ' + str(np.mean(top_5_f)))
+    print('Kappa: ' + np.array2string(top_5_k))
+    print('Kappa mean: ' + str(np.mean(top_5_k)))
+    print('\n')
+
+    with open('data.txt', 'a') as f:
+        f.write(str(names[j])+'\n')
+        f.write('ROC: ' + np.array2string(top_5_roc)+'\n')
+        f.write('ROC mean: ' + str(np.mean(top_5_roc))+'\n')
+        f.write('PR: ' + np.array2string(top_5_pr)+'\n')
+        f.write('PR mean: ' + str(np.mean(top_5_pr))+'\n')
+        f.write('F-score: ' + np.array2string(top_5_f)+'\n')
+        f.write('F-score mean: ' + str(np.mean(top_5_f))+'\n')
+        f.write('Kappa: ' + np.array2string(top_5_k)+'\n')
+        f.write('Kappa mean: ' + str(np.mean(top_5_k))+'\n')
+        f.write('\n')
+
     j += 1
