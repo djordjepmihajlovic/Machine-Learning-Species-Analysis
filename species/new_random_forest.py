@@ -60,17 +60,17 @@ data_test = np.load('species_test.npz', allow_pickle=True)
 test_locs = data_test['test_locs']
 test_pos_inds = dict(zip(data_test['taxon_ids'], data_test['test_pos_inds'])) 
 with open('reverse_dict.pkl', 'rb') as file:
-    reverse_test_pos_inds = pickle.load(file)
+    reverse_test_pos_inds = pickle.load(file)    
 
 test_ids = [] #Uses the new reverse dictionary to create set ids to each of the test locations
 for index in range(len(test_locs)):
     test_id = reverse_test_pos_inds.get(index)
     test_ids.append(test_id)
 
-rdf = RandomForestClassifier(n_estimators = 100, criterion = 'gini', max_depth = 15, class_weight="balanced_subsample")
+rdf = RandomForestClassifier(n_estimators = 100, criterion = 'gini', max_depth = 15) #, class_weight="balanced_subsample")
 
-rdf.fit(new_train_locs, new_train_ids)
-#rdf.fit(train_locs, train_ids_v3)
+#rdf.fit(new_train_locs, new_train_ids)
+rdf.fit(train_locs, train_ids_v3)
 
 predictions_p = rdf.predict_proba(test_locs)
 
