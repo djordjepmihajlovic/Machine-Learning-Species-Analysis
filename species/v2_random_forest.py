@@ -30,7 +30,7 @@ train_ids_v3 = np.array(train_ids_v2)
 
 ###### NEW TRAIN DATA IN SPECIES_TRAIN_7_FEATURES
 
-features_df = pd.read_csv('species_train_7_features.csv', sep=',', header=0)
+features_df = pd.read_csv('species_train_7_features.csv')#, sep=',', header=0)
 features = features_df.values
 
 print("Shape of features:", features.shape)
