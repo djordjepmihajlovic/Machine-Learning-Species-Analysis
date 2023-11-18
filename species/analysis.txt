@@ -33,7 +33,27 @@ For the random forest, the results are:
     Mean ROC AUC is 0.91673283
     Mean PR AUC is nan... :()
 
+For RF, the results using weights is: (Also just did mean this time)
 
+1. For top 5 sparsest:
+    ROC AUC: 0.899878905
+    PR AUC: 0.037386966
+
+2. For top 5 densests:
+    ROC AUC: 0.91294279
+    PR AUC: 0.291197765
+
+3. For top 5 largest distance:
+    ROC AUC: 0.789225301
+    PR AUC: 0.259446706
+
+4. For top 5 smallest distance:
+    ROC AUC: 0.993952086
+    PR AUC: 0.018095636
+
+5. For total:
+    ROC AUC: 0.921315129
+    PR AUC: 0.179543834
 
 For knn:
 ROCAUC all species mean: 0.8105266236665908
@@ -150,3 +170,5 @@ For FFNN, the results are (I just did the mean directly in my code, probs should
 4. For top 5 smallest distance:
     Mean ROC AUC is 0.9973299627737877 new(0.8675211479438516)                                 
     Mean PR AUC is 0.0009417050896884918 new(0.17097533922380653)
+
+
