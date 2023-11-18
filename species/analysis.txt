@@ -144,9 +144,9 @@ For FFNN, the results are (I just did the mean directly in my code, probs should
     Mean PR AUC is 0.3566891002006113
 
 3. For top 5 largest distance:
-    Mean ROC AUC is 0.7398151304130265
-    Mean PR AUC is 0.3402472246427667
+    Mean ROC AUC is 0.7398151304130265  new(0.817423371697749)
+    Mean PR AUC is 0.3402472246427667  new(0.1110319979702421)
 
 4. For top 5 smallest distance:
-    Mean ROC AUC is 0.9973299627737877
-    Mean PR AUC is 0.0009417050896884918
+    Mean ROC AUC is 0.9973299627737877 new(0.8675211479438516)                                 
+    Mean PR AUC is 0.0009417050896884918 new(0.17097533922380653)

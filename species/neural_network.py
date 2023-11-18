@@ -5,6 +5,7 @@ import torch
 import torch.optim as optim
 from torch.utils.data import TensorDataset, DataLoader
 import torch.nn.functional as F
+import csv
 
 # geopy used to decode lat/lon to named address
 from geopy.geocoders import Nominatim
@@ -19,6 +20,8 @@ import seaborn as sns
 import pandas as pd
 
 # at the heart of it, this is a multi label classification problem
+
+p = 'analyze'
 
 # set up data
 data_train = np.load('species_train.npz', mmap_mode="r")
@@ -38,10 +41,19 @@ labels_dict = dict(zip(labels, labels_vec)) # label + corresponding one-hot vect
 train_labels = [[0]*len(labels_vec)]*len(train_locs) # make list of labels for test data
 train_labels = np.array(train_labels) # have to be soooo careful with list mutability vs array mutability!
 
+species_counts = [0]*500
+species_counts = np.array(species_counts)
+
 for idx, v in enumerate(train_ids): # idx is index, v is element
     point = labels_dict[v]
     code = labels_vec.tolist().index(point)
     train_labels[idx][code] = 1
+    species_counts[code] += 1
+
+
+species_weights = len(train_locs)/(species_counts*500)
+
+weight_data = list(zip(species_weights, labels))
 
 # train_labels is essentially just a relabelled version of train_ids 
     
@@ -95,7 +107,8 @@ for epoch in range(EPOCHS):
         net.zero_grad()
         output = net(X.view(-1, 2)) # pass through neural network
         # produces a vector, with idea being weight per guess for each label i.e. (0, 1, 0, 1) <- guessing that label is second and fourth in potential list
-        loss = F.binary_cross_entropy(output, y) # BCE most ideal for a multilabel classification problem 
+        inter_loss = F.binary_cross_entropy(output, y, reduction='none') # BCE most ideal for a multilabel classification problem 
+        loss = torch.mean(species_weights*inter_loss)
         loss.backward() # backpropagation 
         optimizer.step() # adjust weights
 
@@ -134,135 +147,197 @@ print(output[0].tolist())
 
 print(f"Top species to be observed at {location.address}: {found_sp}, with relative liklihood {ch}")
 
-# 43567
-# 13851 
-# 35990 gallotia stehlini
-# 4535 anous stolidus
-# 12716 turdus merula
-sp_idx = [[],[],[],[]]
-sp_iden = [12716, 4535, 35990, 13851, 43567]
-sp_iden = [[35990, 64387, 73903, 6364, 27696], [4208, 12716, 145300, 4636, 4146], [38992, 29976, 8076, 145310, 4569], [4345, 44570, 42961, 32861, 2071]]
-probs = ['Smallest distribution', 'Largest distribution', 'Densest population', 'Sparsest population']
-for num, i in enumerate(sp_iden):
-    for j in i:
-        sp_idx[num].append(list(labels).index(j))
+if p == "analyze":
 
-# accuracy for a specific species 
-true_p = np.zeros((4, 20))
-true_n = np.zeros((4, 20))
-false_p = np.zeros((4, 20))
-false_n = np.zeros((4, 20))
-total = np.zeros((4, 20))
+    # 43567
+    # 13851 
+    # 35990 gallotia stehlini
+    # 4535 anous stolidus
+    # 12716 turdus merula
+    sp_idx = [[]]
+    sp_iden = [[35990, 64387, 73903, 6364, 27696], [4208, 12716, 145300, 4636, 4146], [38992, 29976, 8076, 145310, 4569], [4345, 44570, 42961, 32861, 2071]]
+    probs = ['Smallest distribution', 'Largest distribution', 'Densest population', 'Sparsest population']
+    # for num, i in enumerate(sp_iden):
+    #     for j in i:
+    #         sp_idx[num].append(list(labels).index(j))
 
-# for idx, i in enumerate(labels): # iterate through all labels
-for counter, list_data in enumerate(sp_idx):
-    for species_no, sp_idx in enumerate(list_data):
+    # accuracy for a specific species 
+    species_test = [35990, 64387, 73903, 6364, 27696]
+    true_p = np.zeros((1, 20))
+    true_n = np.zeros((1, 20))
+    false_p = np.zeros((1, 20))
+    false_n = np.zeros((1, 20))
+    total = np.zeros((1, 20))
+
+    for idx, i in enumerate(species_test): # iterate through all labels
+    # for counter, list_data in enumerate(sp_idx):
+        # for species_no, sp_idx in enumerate(list_data):
         for data in test_loader:
             X, y = data # note ordering of j and i (kept confusing me yet again)
             output = net(X.view(-1, 2))
-            for i in range(0, len(output)):
+            for el in range(0, len(output)):
                 # for j in range(0, len(output[0])):
-                j = sp_idx
-                sp_choice = output[i][j].item() # choose species of evaluation
-                value_ = y[i][j]
+                sp_choice = output[el][idx].item() # choose species of evaluation
+                value_ = y[el][idx]
 
-                for idx, specificity in enumerate(np.linspace(0.0, 0.05, 20)):
+                for idxs, specificity in enumerate(np.linspace(0.0, 0.05, 20)):
 
                     if sp_choice >=specificity and value_ == 1: # if percentage prediction is < 25% of species being there then == 0 
-                        true_p[counter][idx] += 1
+                        true_p[0][idxs] += 1
 
                     elif sp_choice < specificity and value_ == 0:
-                        true_n[counter][idx] += 1
+                        true_n[0][idxs] += 1
 
                     elif sp_choice >= specificity and value_ == 0:
-                        false_p[counter][idx] += 1
+                        false_p[0][idxs] += 1
 
                     elif sp_choice < specificity and value_ == 1:
-                        false_n[counter][idx] += 1
+                        false_n[0][idxs] += 1
 
-                    total[counter][idx] += 1
+                    total[0][idxs] += 1
 
-        print(f"species analysis {species_no} done.")
-    print(f"species analysis {counter} done.")
+        print(f"species analysis {i} done.")
 
-true_p_rate = true_p/(true_p + false_n)
-false_p_rate = false_p/(true_n + false_p)
+    true_p_rate = true_p/(true_p + false_n)
+    false_p_rate = false_p/(true_n + false_p)
 
-precision = true_p/(true_p +false_p)
-recall = true_p/(true_p + false_n)
+    testing = true_p+false_p
 
-conf_mat = [[true_p[0][1]/(true_p[0][1]+false_n[0][1]), true_n[0][1]/(true_n[0][1]+false_p[0][1])], [false_p[0][1]/(true_n[0][1]+false_p[0][1]), false_n[0][1]/(false_n[0][1]+true_p[0][1])]] # ideal sensitivity
-conf_label = ['True', 'False']
-conf_col = ['Positive', 'Negative']
+    print(true_p)
+    print(testing)
 
-df_cm = pd.DataFrame(conf_mat, index = conf_label,
-                  columns = conf_col)
+    for num, i in enumerate(testing[0]):
+        if i == 0:
+            testing[0][num] = 0.0001
+    
+    print(testing)
 
-sns.set_theme()
 
-# sns.lineplot(x = false_p_rate[0].tolist(), y = true_p_rate[0].tolist())
-# sns.lineplot(x = false_p_rate[1].tolist(), y = true_p_rate[1].tolist())
-# sns.lineplot(x = false_p_rate[2].tolist(), y = true_p_rate[2].tolist())
-# sns.lineplot(x = false_p_rate[3].tolist(), y = true_p_rate[3].tolist())
-# sns.lineplot(x = false_p_rate[4].tolist(), y = true_p_rate[4].tolist())
-# plt.xlabel('False Positive Rate')
-# plt.ylabel('True Positive Rate')
-# ax = plt.gca()
-# ax.set_ylim([0, 1.05])
+    precision = true_p/(testing)
+    recall = true_p/(true_p + false_n)
 
-AUCROC = []
+    conf_mat = [[true_p[0][1]/(true_p[0][1]+false_n[0][1]), true_n[0][1]/(true_n[0][1]+false_p[0][1])], [false_p[0][1]/(true_n[0][1]+false_p[0][1]), false_n[0][1]/(false_n[0][1]+true_p[0][1])]] # ideal sensitivity
+    conf_label = ['True', 'False']
+    conf_col = ['Positive', 'Negative']
 
-AUCPR = []
+    df_cm = pd.DataFrame(conf_mat, index = conf_label,
+                    columns = conf_col)
 
-AUCROC.append(np.abs(np.trapz(y=true_p_rate[0].tolist(), x=false_p_rate[0].tolist())))
-AUCROC.append(np.abs(np.trapz(y=true_p_rate[1].tolist(), x=false_p_rate[1].tolist())))
-AUCROC.append(np.abs(np.trapz(y=true_p_rate[2].tolist(), x=false_p_rate[2].tolist())))
-AUCROC.append(np.abs(np.trapz(y=true_p_rate[3].tolist(), x=false_p_rate[3].tolist())))
+    sns.set_theme()
 
-AUCPR.append(np.abs(np.trapz(y=precision[0].tolist(), x=recall[0].tolist())))
-AUCPR.append(np.abs(np.trapz(y=precision[1].tolist(), x=recall[1].tolist())))
-AUCPR.append(np.abs(np.trapz(y=precision[2].tolist(), x=recall[2].tolist())))
-AUCPR.append(np.abs(np.trapz(y=precision[3].tolist(), x=recall[3].tolist())))
+    sns.lineplot(x = false_p_rate[0].tolist(), y = true_p_rate[0].tolist())
 
-print(AUCROC)
+    plt.xlabel('False Positive Rate')
+    plt.ylabel('True Positive Rate')
+    ax = plt.gca()
+    ax.set_ylim([0, 1.05])
 
-print(AUCPR)
+    plt.show()
 
-sns.barplot(x=probs, y=AUCROC, color='b')
-plt.xlabel('Species')
-plt.ylabel('AUC-ROC')
-plt.show()
+    sns.lineplot(x = recall[0].tolist(), y = precision[0].tolist())
+    plt.xlabel('Recall')
+    plt.ylabel('Precision')
+    ax = plt.gca()
+    ax.set_ylim([0, 1.05])
 
-sns.barplot(x=probs, y=AUCPR, color='b')
-plt.xlabel('Species')
-plt.ylabel('AUC-PR')
-plt.show()
+    plt.show()
 
-sns.heatmap(df_cm, cmap='Greys', annot=True)
-plt.show()
 
-x =np.linspace(-180, 180, 100)
-y = np.linspace(-90, 90, 100)
-heatmap = np.zeros((len(y), len(x)))
+    AUCROC = []
 
-for idx, i in enumerate(x):
-    for idy, j in enumerate(y):
-        X = torch.tensor([j, i]).type(torch.float) # note ordering of j and i (kept confusing me yet again)
-        output = net(X.view(-1, 2))
-        sp_choice = output[0][sp_idx].item() # choose species of evaluation
+    AUCPR = []
 
-        if sp_choice < 0.0025:
-            heatmap[idy, idx] = 0
+    AUCROC.append(np.abs(np.trapz(y=true_p_rate[0].tolist(), x=false_p_rate[0].tolist())))
+    # AUCROC.append(np.abs(np.trapz(y=true_p_rate[1].tolist(), x=false_p_rate[1].tolist())))
+    # AUCROC.append(np.abs(np.trapz(y=true_p_rate[2].tolist(), x=false_p_rate[2].tolist())))
+    # AUCROC.append(np.abs(np.trapz(y=true_p_rate[3].tolist(), x=false_p_rate[3].tolist())))
 
-        else:
-            heatmap[idy, idx] = sp_choice
+    AUCPR.append(np.abs(np.trapz(y=precision[0].tolist(), x=recall[0].tolist())))
+    # AUCPR.append(np.abs(np.trapz(y=precision[1].tolist(), x=recall[1].tolist())))
+    # AUCPR.append(np.abs(np.trapz(y=precision[2].tolist(), x=recall[2].tolist())))
+    # AUCPR.append(np.abs(np.trapz(y=precision[3].tolist(), x=recall[3].tolist())))
 
-X, Y = np.meshgrid(x, y)
-world = gpd.read_file(gpd.datasets.get_path('naturalearth_lowres')) 
-ax = world.plot(figsize=(10, 6))
-ax.set_title(str(sp_iden[0]) + ' - ' + str(species_names[sp_iden[0]]))
-cs = ax.contourf(X, Y, heatmap, levels = np.linspace(10**(-10), np.max(heatmap), 10), alpha = 0.5, cmap = 'plasma')
-ax.clabel(cs, inline = True)
-plt.show() 
+    print(AUCROC)
+
+    print(AUCPR)
+
+    sns.barplot(x=probs, y=AUCROC, color='b')
+    plt.xlabel('Species')
+    plt.ylabel('AUC-ROC')
+    plt.show()
+
+    sns.barplot(x=probs, y=AUCPR, color='b')
+    plt.xlabel('Species')
+    plt.ylabel('AUC-PR')
+    plt.show()
+
+    sns.heatmap(df_cm, cmap='Greys', annot=True)
+    plt.show()
+
+elif p == "climate":
+
+        bio2 = plt.imread('wc2/wc2.1_10m_bio_2.tif')
+        bio15 = plt.imread('wc2/wc2.1_10m_bio_15.tif')
+        x_len = len(bio2)
+        y_len = len(bio2[0])
+        x = []
+        y = []
+        heatmap_15 = np.zeros((x_len, y_len))
+        heatmap_2 = np.zeros((x_len, y_len))
+
+        for j in range(0, 2160):  # conversion is 1/6...
+            for i in range(0, 1080):
+                heatmap_15[i][j] = bio15[i][j][0]
+                heatmap_2[i][j] = bio2[i][j][0]
+
+        k = -50000
+
+        idx = np.argpartition(heatmap_15.ravel(), k)
+        p = tuple(np.array(np.unravel_index(idx, heatmap_15.shape))[:, range(min(k, 0), max(k, 0))])
+        x_rank = [(i/6)-180 for i in p[1].tolist()]
+        y_rank = [(-i/6)+90 for i in p[0].tolist()]
+
+        locations = list(zip(y_rank, x_rank))
+
+        analysis = np.zeros((1, 500))
+
+        for i in locations:
+            dat = torch.tensor(i)
+            output = net(dat.view(-1, 2))
+            analysis += output.detach().numpy()
+
+        most_affected = np.argsort(analysis) # top most affected
+
+        most_affected_names = [labels[element] for element in most_affected]
+
+        print(most_affected_names)
+
+
+else:
+    sp_iden = 12716
+    sp_idx = list(labels).index(sp_iden)
+    x =np.linspace(-180, 180, 100)
+    y = np.linspace(-90, 90, 100)
+    heatmap = np.zeros((len(y), len(x)))
+
+    for idx, i in enumerate(x):
+        for idy, j in enumerate(y):
+            X = torch.tensor([j, i]).type(torch.float) # note ordering of j and i (kept confusing me yet again)
+            output = net(X.view(-1, 2))
+            sp_choice = output[0][sp_idx].item() # choose species of evaluation
+
+            if sp_choice < 0.0025:
+                heatmap[idy, idx] = 0
+
+            else:
+                heatmap[idy, idx] = sp_choice
+
+    X, Y = np.meshgrid(x, y)
+    world = gpd.read_file(gpd.datasets.get_path('naturalearth_lowres')) 
+    ax = world.plot(figsize=(10, 6))
+    cs = ax.contourf(X, Y, heatmap, levels = np.linspace(10**(-10), np.max(heatmap), 10), alpha = 0.5, cmap = 'plasma')
+    ax.set_xticks([])
+    ax.set_yticks([])
+    plt.show() 
 
 # currently, model is good at placing localized species but bad at placing species with two distributions
