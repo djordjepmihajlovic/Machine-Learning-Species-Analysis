@@ -30,7 +30,7 @@ plt.colorbar(p, ticks=[0,4,8,12,16,20], shrink=0.5, label=r'Temperature Anomaly 
 score = difference / difference.max()
 # 
 lats = score.lat.to_numpy()
-lons = score.lon.to_numpy()
+lons = score.lon.to_numpy() - 180
 num_coords = len(lats) * len(lons)
 coords = np.zeros((num_coords,2))
 scores = np.zeros(num_coords)
@@ -39,7 +39,8 @@ for lat in  lats:
     for lon in lons:
         coords[i,0] = lat
         coords[i,1] = lon
-        scores[i] = score.sel(lat=lat,lon=lon)
+        scores[i] = score.sel(lat=lat,lon=lon+180)
         i += 1
+print(scores)
 np.save('scores', scores)
 np.save('scores_coords', coords)
