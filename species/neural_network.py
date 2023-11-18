@@ -51,7 +51,7 @@ for idx, v in enumerate(train_ids): # idx is index, v is element
     species_counts[code] += 1
 
 
-species_weights = len(train_locs)/(species_counts*500)
+species_weights = torch.tensor(len(train_locs)/(species_counts*500))
 
 weight_data = list(zip(species_weights, labels))
 
@@ -107,7 +107,7 @@ for epoch in range(EPOCHS):
         net.zero_grad()
         output = net(X.view(-1, 2)) # pass through neural network
         # produces a vector, with idea being weight per guess for each label i.e. (0, 1, 0, 1) <- guessing that label is second and fourth in potential list
-        inter_loss = F.binary_cross_entropy(output, y, reduction='none') # BCE most ideal for a multilabel classification problem 
+        inter_loss = F.binary_cross_entropy(output, y) # BCE most ideal for a multilabel classification problem 
         loss = torch.mean(species_weights*inter_loss)
         loss.backward() # backpropagation 
         optimizer.step() # adjust weights
@@ -180,7 +180,7 @@ if p == "analyze":
                 sp_choice = output[el][idx].item() # choose species of evaluation
                 value_ = y[el][idx]
 
-                for idxs, specificity in enumerate(np.linspace(0.0, 0.05, 20)):
+                for idxs, specificity in enumerate(np.linspace(0.0, 0.025, 20)):
 
                     if sp_choice >=specificity and value_ == 1: # if percentage prediction is < 25% of species being there then == 0 
                         true_p[0][idxs] += 1
@@ -248,14 +248,8 @@ if p == "analyze":
     AUCPR = []
 
     AUCROC.append(np.abs(np.trapz(y=true_p_rate[0].tolist(), x=false_p_rate[0].tolist())))
-    # AUCROC.append(np.abs(np.trapz(y=true_p_rate[1].tolist(), x=false_p_rate[1].tolist())))
-    # AUCROC.append(np.abs(np.trapz(y=true_p_rate[2].tolist(), x=false_p_rate[2].tolist())))
-    # AUCROC.append(np.abs(np.trapz(y=true_p_rate[3].tolist(), x=false_p_rate[3].tolist())))
 
     AUCPR.append(np.abs(np.trapz(y=precision[0].tolist(), x=recall[0].tolist())))
-    # AUCPR.append(np.abs(np.trapz(y=precision[1].tolist(), x=recall[1].tolist())))
-    # AUCPR.append(np.abs(np.trapz(y=precision[2].tolist(), x=recall[2].tolist())))
-    # AUCPR.append(np.abs(np.trapz(y=precision[3].tolist(), x=recall[3].tolist())))
 
     print(AUCROC)
 

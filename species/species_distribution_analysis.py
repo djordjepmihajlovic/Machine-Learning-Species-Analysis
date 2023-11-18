@@ -278,61 +278,56 @@ def main():
         # 7 = temp range.
         # ...
 
-        bio2 = plt.imread('wc2/wc2.1_10m_bio_2.tif')
-        bio15 = plt.imread('wc2/wc2.1_10m_bio_15.tif')
-        x_len = len(bio2)
-        y_len = len(bio2[0])
+        bio1 = plt.imread('wc2/wc2.1_10m_bio_1.tif') # mean temp
+        bio12 = plt.imread('wc2/wc2.1_10m_bio_12.tif') # precip
+        bio_elev = plt.imread('wc2/wc2.1_10m_elev.tif') # elev
+        x_len = len(bio1)
+        y_len = len(bio1[0])
         x = []
         y = []
-        heatmap_15 = np.zeros((x_len, y_len))
-        heatmap_2 = np.zeros((x_len, y_len))
+        heatmap_elev = np.zeros((x_len, y_len))
+        heatmap_temp = np.zeros((x_len, y_len))
+        heatmap_precip = np.zeros((x_len, y_len))
 
         for j in range(0, 2160):  # conversion is 6...
             for i in range(0, 1080):
-                heatmap_15[i][j] = bio15[i][j][0]
-                heatmap_2[i][j] = bio2[i][j][0]
+                heatmap_elev[i][j] = bio_elev[i][j][0]
+                heatmap_temp[i][j] = bio1[i][j][0]
+                heatmap_precip[i][j] = bio12[i][j][0]
 
-        k = -50000
+        empt = []
+        # for idx, i in enumerate(test_locs): # lat lon
+        #     latitude = i[0] # -90 -> 90
+        #     lat_conv = -6*(latitude-90)
+        #     longitude = i[1] # -180 -> 180
+        #     long_conv = 6*(longitude+180)
+        #     elevation = heatmap_elev[int(lat_conv)][int(long_conv)]
+        #     precipitation = heatmap_precip[int(lat_conv)][int(long_conv)]
+        #     temperature = heatmap_temp[int(lat_conv)][int(long_conv)]
 
-        idx = np.argpartition(heatmap_15.ravel(), k)
-        p = tuple(np.array(np.unravel_index(idx, heatmap_15.shape))[:, range(min(k, 0), max(k, 0))])
+        #     new_data = [i[0], i[1], elevation, precipitation, temperature]
+        #     empt.append(new_data)
+
+        #     print(idx)
+
+        # with open('species_test_5_features.csv', 'w', newline='') as f:
+        #     writer = csv.writer(f)
+        #     writer.writerows(empt) 
+
+        k = -500
+
+        idx = np.argpartition(heatmap_elev.ravel(), k)
+        p = tuple(np.array(np.unravel_index(idx, heatmap_elev.shape))[:, range(min(k, 0), max(k, 0))])
         x_rank = [(i/6)-180 for i in p[1].tolist()]
         y_rank = [(-i/6)+90 for i in p[0].tolist()]
 
         locations = list(zip(y_rank, x_rank))
 
-        precip_var = pd.DataFrame(heatmap_15) # heatmaps
-        temp_var = pd.DataFrame(heatmap_2)
+        elev_var = pd.DataFrame(heatmap_precip) # heatmaps
 
-        sp = np.random.choice(species)
-        sp = 518169 #, 1078, 46994, 73801
-        print('\nDisplaying random species:')
-        print(str(sp) + ' - ' + species_names[sp]) 
-
-        # get test locations and plot
-        # test_inds_pos is the locations where the selected species is present
-        # test_inds_neg is the locations where the selected species is not present
-        test_inds_pos = test_pos_inds[sp]  
-        test_inds_neg = np.setdiff1d(np.arange(test_locs.shape[0]), test_pos_inds[sp])
-        # plt.plot(test_locs[test_inds_pos, 1], test_locs[test_inds_pos, 0], 'b.', label='test')
-
-
-        # get train locations and plot
-        train_inds_pos = np.where(train_ids == sp)[0]
-        plt.plot(train_locs[train_inds_pos, 1], train_locs[train_inds_pos, 0], 'rx', label='train')
-
-        # get locations with high temp variability
-        plt.plot([i[1] for i in locations], [i[0] for i in locations], 'gx')
-        
-
-        plt.title(str(sp) + ' - ' + species_names[sp])
-        plt.grid(True)
-        plt.xlim([-180, 180])
-        plt.ylim([-90, 90])
-        plt.ylabel('latitude')
-        plt.xlabel('longitude')
-        plt.legend()
+        sns.heatmap(elev_var)
         plt.show()
+
 
 if __name__ == "__main__":
     args = get_params()

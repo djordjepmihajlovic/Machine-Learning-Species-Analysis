@@ -140,8 +140,8 @@ For FFNN, the results are (I just did the mean directly in my code, probs should
     Mean PR AUC is: 0.02311410729356262
 
 2. For top 5 most dense:
-    Mean ROC AUC is 0.9080670271172481
-    Mean PR AUC is 0.3566891002006113
+    Mean ROC AUC is 0.9080670271172481 new(0.8672008620198197)                                        
+    Mean PR AUC is 0.3566891002006113 new(0.07865012930950475)
 
 3. For top 5 largest distance:
     Mean ROC AUC is 0.7398151304130265  new(0.817423371697749)
