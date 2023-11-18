@@ -12,6 +12,7 @@ from shapely.geometry import Point
 import seaborn as sns
 import pandas as pd
 import csv 
+from numpy import genfromtxt
 
 #Load data
 data = np.load('species_train.npz')
@@ -30,18 +31,20 @@ train_ids_v3 = np.array(train_ids_v2)
 
 ###### NEW TRAIN DATA IN SPECIES_TRAIN_7_FEATURES
 
-features_df = pd.read_csv('species_train_7_features.csv', sep=',')#, header=0)
-features = features_df.values
+#features_df = pd.read_csv('species_train_7_features.csv', sep=',')#, header=0)
+#features = features_df.values
 
-print("Shape of features:", features.shape)
-print("Shape of labels:", train_ids_v3.shape)
+features_train = genfromtxt('species_train_5_features.csv', delimiter=',')
+
+#print("Shape of features:", features.shape)
 #first_row = features_df.iloc[0]
-first_row = features_df.head(1)
-print("First row of features:")
-print(first_row)
+#print("Shape of labels:", train_ids_v3.shape)
+#first_row = features_df.head(1)
+#print("First row of features:")
+#print(first_row)
 
 #Load test data plus reverse dictionary
-"""
+
 data_test = np.load('species_test.npz', allow_pickle=True)
 test_locs = data_test['test_locs']
 test_pos_inds = dict(zip(data_test['taxon_ids'], data_test['test_pos_inds'])) 
@@ -54,7 +57,7 @@ rdf = RandomForestClassifier(n_estimators = 100, criterion = 'gini', max_depth =
 # Using max depth = 18, from graph I think 15 could be argued as good accuracy without over fitting too much
 #############################################################################################################################################
 #rdf.fit(new_train_locs, new_train_ids)
-rdf.fit(features, train_ids_v3)
+rdf.fit(features_train, train_ids_v3)
 
 #predictions = rdf.predict(test_locs)
 
@@ -88,7 +91,7 @@ np.save(file_path, pvals)
 #print(pvals.max())
 #print(pvals.min())
 #sns.set_theme()
-"""
+
 """
 X, Y = np.meshgrid(longs, lats)
 world = gpd.read_file(gpd.datasets.get_path('naturalearth_lowres')) 
