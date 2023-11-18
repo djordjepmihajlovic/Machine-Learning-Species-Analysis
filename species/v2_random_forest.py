@@ -35,12 +35,13 @@ features = features_df.values
 
 print("Shape of features:", features.shape)
 print("Shape of labels:", train_ids_v3.shape)
-first_row = features_df.iloc[0]
+#first_row = features_df.iloc[0]
+first_row = features_df.head(1)
 print("First row of features:")
 print(first_row)
 
 #Load test data plus reverse dictionary
-
+"""
 data_test = np.load('species_test.npz', allow_pickle=True)
 test_locs = data_test['test_locs']
 test_pos_inds = dict(zip(data_test['taxon_ids'], data_test['test_pos_inds'])) 
@@ -87,6 +88,7 @@ np.save(file_path, pvals)
 #print(pvals.max())
 #print(pvals.min())
 #sns.set_theme()
+"""
 """
 X, Y = np.meshgrid(longs, lats)
 world = gpd.read_file(gpd.datasets.get_path('naturalearth_lowres')) 
