@@ -102,8 +102,8 @@ def main():
         print(label_mini)
         print(label_maxi)
 
-        print(f"The 5 largest distributed species are: {[int(i[1]) for i in label_maxi]}, spanning: {[float(j[0]) for j in label_maxi]}km") # finds label and species with largest spread
-        print(f"The 5 smallest distributed species are: {[int(i[1]) for i in label_mini]}, spanning: {[float(j[0]) for j in label_mini]}km ") # ''' smallest '''
+        # print(f"The 5 largest distributed species are: {[int(i[1]) for i in label_maxi]}, spanning: {[float(j[0]) for j in label_maxi]}km") # finds label and species with largest spread
+        # print(f"The 5 smallest distributed species are: {[int(i[1]) for i in label_mini]}, spanning: {[float(j[0]) for j in label_mini]}km ") # ''' smallest '''
 
 
         test_inds_pos_maxi = test_pos_inds[int(label_maxi[-1][1])]  
@@ -143,20 +143,20 @@ def main():
 
         sorted_species_density = sorted(density, key=lambda x: float(x[0]))
 
-        label_mini = sorted_species_density[0:5]
-        label_maxi = sorted_species_density[-6:-1]
+        label_mini = sorted_species_density[0]
+        label_maxi = sorted_species_density[-2]
 
 
         print(label_mini)
         print(label_maxi)
 
-        print(f"The 5 densest distributed species are: {[int(i[1]) for i in label_maxi]}, spanning: {[float(j[0]) for j in label_maxi]}km") # finds label and species with largest spread
-        print(f"The 5 sparsest distributed species are: {[int(i[1]) for i in label_mini]}, spanning: {[float(j[0]) for j in label_mini]}km ") # ''' smallest '''
+        # print(f"The 5 densest distributed species are: {[int(i[1]) for i in label_maxi]}, spanning: {[float(j[0]) for j in label_maxi]}km") # finds label and species with largest spread
+        # print(f"The 5 sparsest distributed species are: {[int(i[1]) for i in label_mini]}, spanning: {[float(j[0]) for j in label_mini]}km ") # ''' smallest '''
 
 
-        test_inds_pos_maxi = test_pos_inds[int(label_maxi[-1][1])]  
+        test_inds_pos_maxi = test_pos_inds[int(label_maxi[1])]  
 
-        test_inds_pos_mini = test_pos_inds[int(label_mini[0][1])]
+        test_inds_pos_mini = test_pos_inds[int(label_mini[1])]
 
         # geopandas code to plot data
 
@@ -168,8 +168,8 @@ def main():
 
         world = gpd.read_file(gpd.datasets.get_path('naturalearth_lowres')) 
         ax = world.plot(figsize=(10, 6))
-        gdf_maxi.plot(ax=ax, marker='o', color='b', markersize=5, label=f"{species_names[label_maxi]} ({label_maxi}), occurence: {round(1/float(sorted_species_density[-1][0]), 2)} km²")
-        gdf_mini.plot(ax=ax, marker='o', color='r', markersize=5, label=f"{species_names[label_mini]} ({label_mini}), occurence: {round(1/float(sorted_species_density[0][0]), 2)} km²")
+        gdf_maxi.plot(ax=ax, marker='o', color='b', markersize=5, label=f"{species_names[label_maxi[1]]} ({label_maxi[1]}), species count per km²: {round(float(label_maxi[0]), 5)}")
+        gdf_mini.plot(ax=ax, marker='o', color='r', markersize=5, label=f"{species_names[label_mini[1]]} ({label_mini[1]}), species count per km²: {round(float(label_mini[0]), 5)}")
 
         plt.legend()
         plt.title(f"Population distribution of most vs. least densely populated species.")
@@ -246,11 +246,20 @@ def main():
         top_sparse_ID = [4345, 44570, 42961, 32861, 2071]
         top_sparse_data = [4.177038786428789e-05, 4.221188087170338e-05, 4.477237034420791e-05, 4.7904293356840265e-05, 4.95147014244629e-05]
 
-        sns.barplot(y=[(1/i) for i in top_sparse_data] + [(1/i) for i in top_dense_data], x= top_sparse_ID + top_dense_ID, color='blue' , linewidth=1, edgecolor = 'black')
-        plt.xlabel('Species taxon ID')
-        plt.ylabel('Area per species individual (km²)')
-        plt.title('Density of species.')
+        sns.set_theme()
+        df_top = pd.DataFrame({'Distn.s': top_dense_data}, index=top_dense_ID)
+        df_min = pd.DataFrame({'Distn.s': top_sparse_data}, index=top_sparse_ID)
+
+        df_combined = pd.concat([df_top, df_min], keys=['Densest', 'Sparsest'])
+
+        ax = df_combined.unstack(level=0).plot(kind='bar', rot=0, legend=False)
+        ax.set_xlabel('Species taxon ID')
+        ax.set_ylabel('Avg. species count per km²')
+        ax.set_title('Population density, top-5 densest vs top-5 sparsest.')
+        plt.legend(title= 'Distribution type', loc='upper right', labels=['Densest', 'Sparsest'])
         plt.show()
+
+        # ²
 
     elif d == "extra":
 
@@ -269,25 +278,61 @@ def main():
         # 7 = temp range.
         # ...
 
-        I = plt.imread('wc2/wc2.1_10m_bio_4.tif')
-        print(len(I), len(I[0]), len(I[0][0])) # y, x, val
+        bio2 = plt.imread('wc2/wc2.1_10m_bio_2.tif')
+        bio15 = plt.imread('wc2/wc2.1_10m_bio_15.tif')
+        x_len = len(bio2)
+        y_len = len(bio2[0])
         x = []
         y = []
-        for i in range(0, 1080):
-            print(I[i][1500])
-            if I[i][1500][2] != 0: # fix x at 1080 (vertical line down middle of map)
-                y.append(i)
-                x.append(1500)
+        heatmap_15 = np.zeros((x_len, y_len))
+        heatmap_2 = np.zeros((x_len, y_len))
 
-        plt.scatter(x, y)
-        plt.xlim([0, 2160])
-        plt.ylim([0, 1080])
+        for j in range(0, 2160):  # conversion is 6...
+            for i in range(0, 1080):
+                heatmap_15[i][j] = bio15[i][j][0]
+                heatmap_2[i][j] = bio2[i][j][0]
+
+        k = -50000
+
+        idx = np.argpartition(heatmap_15.ravel(), k)
+        p = tuple(np.array(np.unravel_index(idx, heatmap_15.shape))[:, range(min(k, 0), max(k, 0))])
+        x_rank = [(i/6)-180 for i in p[1].tolist()]
+        y_rank = [(-i/6)+90 for i in p[0].tolist()]
+
+        locations = list(zip(y_rank, x_rank))
+
+        precip_var = pd.DataFrame(heatmap_15) # heatmaps
+        temp_var = pd.DataFrame(heatmap_2)
+
+        sp = np.random.choice(species)
+        sp = 518169 #, 1078, 46994, 73801
+        print('\nDisplaying random species:')
+        print(str(sp) + ' - ' + species_names[sp]) 
+
+        # get test locations and plot
+        # test_inds_pos is the locations where the selected species is present
+        # test_inds_neg is the locations where the selected species is not present
+        test_inds_pos = test_pos_inds[sp]  
+        test_inds_neg = np.setdiff1d(np.arange(test_locs.shape[0]), test_pos_inds[sp])
+        # plt.plot(test_locs[test_inds_pos, 1], test_locs[test_inds_pos, 0], 'b.', label='test')
+
+
+        # get train locations and plot
+        train_inds_pos = np.where(train_ids == sp)[0]
+        plt.plot(train_locs[train_inds_pos, 1], train_locs[train_inds_pos, 0], 'rx', label='train')
+
+        # get locations with high temp variability
+        plt.plot([i[1] for i in locations], [i[0] for i in locations], 'gx')
+        
+
+        plt.title(str(sp) + ' - ' + species_names[sp])
+        plt.grid(True)
+        plt.xlim([-180, 180])
+        plt.ylim([-90, 90])
+        plt.ylabel('latitude')
+        plt.xlabel('longitude')
+        plt.legend()
         plt.show()
-
-
-
-
-
 
 if __name__ == "__main__":
     args = get_params()
