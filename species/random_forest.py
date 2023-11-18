@@ -122,15 +122,15 @@ with open(csv_filename1, 'w', newline='') as csvfile:
         total = np.zeros((5, 20))
 
         j = 0
-        for id in most_sparse: #####
+        for id in list: #####
             id_inx = np.where(species == id)
             for i in range(len(test_locs)):
                 for idx, thr in enumerate(np.linspace(0.0, rng, 20)): #Maybe use 4 or 5 to start?
-                    if id in test_ids[i] and predictions_p[i][id_inx[0]] > thr:
+                    if id in test_ids[i] and predictions_p[i][id_inx[0]] >= thr:
                         true_p[j][idx] += 1
                     elif id in test_ids[i] and predictions_p[i][id_inx[0]] < thr:
                         false_n[j][idx] += 1
-                    elif id not in test_ids[i] and predictions_p[i][id_inx[0]] > thr:
+                    elif id not in test_ids[i] and predictions_p[i][id_inx[0]] >= thr:
                         false_p[j][idx] += 1
                     elif id not in test_ids[i] and predictions_p[i][id_inx[0]] < thr:
                         true_n[j][idx] += 1
