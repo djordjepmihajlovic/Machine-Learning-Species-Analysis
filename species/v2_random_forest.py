@@ -33,6 +33,9 @@ train_ids_v3 = np.array(train_ids_v2)
 features_df = pd.read_csv('species_train_7_features.csv', sep=',')
 features = features_df.values
 
+print("Shape of features:", features.shape)
+print("Shape of labels:", train_ids_v3.shape)
+
 #Load test data plus reverse dictionary
 
 data_test = np.load('species_test.npz', allow_pickle=True)
