@@ -41,5 +41,5 @@ for lat in  lats:
         coords[i,1] = lon
         scores[i] = score.sel(lat=lat,lon=lon)
         i += 1
-print(scores)
-print(coords)
+np.save('scores', scores)
+np.save('scores_coords', coords)
