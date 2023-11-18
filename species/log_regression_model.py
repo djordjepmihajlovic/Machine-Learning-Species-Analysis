@@ -4,12 +4,13 @@ import matplotlib.pyplot as plt
 import pickle
 
 #Load data
-data = np.load('species/species_train.npz')
+data = np.load('species_train.npz')
 train_locs = data['train_locs']          
 train_ids = data['train_ids']               
 species = data['taxon_ids']      
 species_names = dict(zip(data['taxon_ids'], data['taxon_names'])) 
 
+"""
 range_list = range(len(species)) #Range from 0-499
 spec_dict = dict(zip(species, range_list)) #Dictionary matches species id with index in species
 train_ids_v2 = [] #List of train ids, now they go from 0 to 499
@@ -53,9 +54,9 @@ for sp_indices in train_inds_pos_b:
 flat_wanted_indices = [item for sublist in wanted_indices for item in sublist]
 new_train_locs = train_locs[flat_wanted_indices]
 new_train_ids = train_ids_v3[flat_wanted_indices]
-
+"""
 # test data
-data_test = np.load('species/species_test.npz', allow_pickle=True) 
+data_test = np.load('species_test.npz', allow_pickle=True) 
 test_locs = data_test['test_locs']
 test_ids = data_test['taxon_ids']
 test_species = np.unique(test_ids)
@@ -64,12 +65,13 @@ test_pos_inds = dict(zip(data_test['taxon_ids'], data_test['test_pos_inds']))
 
 # logistic regression classifier
 """
-lr = LogisticRegression(multi_class= 'multinomial')
-lr.fit(new_train_locs, new_train_ids)
-with open('lr_model.pkl','wb') as f:
+lr = LogisticRegression(class_weight='balanced')
+
+lr.fit(train_locs, train_ids)
+with open('lr_model_balanced.pkl','wb') as f:
     pickle.dump(lr,f)
 """
-with open('species/lr_model.pkl', 'rb') as f:
+with open('lr_model_balanced.pkl', 'rb') as f:
     lr = pickle.load(f)
 
 # get probability values for each id and each test loc
@@ -82,7 +84,7 @@ def errors(id, threshold):
     pos_inds = test_pos_inds[id]
     true = np.zeros(num_locs, dtype = int)
     true[pos_inds] = 1 
-    id_index = spec_dict[id]
+    id_index = np.where(lr.classes_ == id)[0][0]
 
     # true postives, false positives, false negatives, true negatives
     tp, fp, tn, fn = (np.zeros(num_locs) for i in range (4))
@@ -99,14 +101,14 @@ def errors(id, threshold):
     tn = len(t[t == 0])
     fn = len(f[f == 1])
     fp = len(f[f == 0])
-    """
+
     if(tp == 0 and fp == 0):
         print('Divide by zero found for threshold '+str(threshold))
         print('tp: '+str(tp))
         print('tn: '+str(tn))
         print('fp: '+str(fp))
         print('fn: '+str(fn))
-    """
+
     return tp, tn, fp, fn
 
 def pr_auc(id, threshold):
@@ -168,7 +170,7 @@ def get_measures(id, threshold):
 pr, roc, f1, k = (np.zeros(len(test_species)) for i in range(4)) 
 i = 0
 for id in test_species:
-    pr[i], roc[i], f1[i], k[i] = get_measures(id, 0.001) 
+    pr[i], roc[i], f1[i], k[i] = get_measures(id, 0.005) 
     i += 1
 
 print('ROCAUC all species mean: ' + str(np.mean(roc)))
@@ -177,17 +179,18 @@ print('F-score all species mean: ' + str(np.mean(f1)))
 print('Kappa all species mean: ' + str(np.mean(k)))
 print('\n')
 
-with open('data.txt', 'w') as f:
+with open('data_lr_balanced.txt', 'w') as f:
     f.write('ROCAUC all species mean: ' + str(np.mean(roc))+'\n')
     f.write('PRAUC all species mean: ' + str(np.mean(pr))+'\n')
     f.write('F-score all species mean: ' + str(np.mean(f1))+'\n')
     f.write('Kappa all species mean: ' + str(np.mean(k))+'\n')
     f.write('\n')
 
-np.save('knn_roc', roc)
-np.save('knn_pr', pr)
-np.save('knn_fscore', f1)
-np.save('knn_kappa', k)
+np.save('lr_balanced_roc', roc)
+np.save('lr_balanced_pr', pr)
+np.save('lr_balanced_fscore', f1)
+np.save('lr_balanced_kappa', k)
+
 
 # top 5 ids for different categories
 sparsest = [4345, 44570, 42961, 32861, 2071]
@@ -201,7 +204,7 @@ j = 0
 for data in datasets:
     inds = np.zeros(5)
     for i in range(5):
-        inds[i] = spec_dict[data[i]]
+      inds[i] = np.where(lr.classes_ == data[i])[0][0]
     inds = inds.astype(int)
 
     top_5_pr = pr[inds]
@@ -220,7 +223,7 @@ for data in datasets:
     print('Kappa mean: ' + str(np.mean(top_5_k)))
     print('\n')
 
-    with open('data.txt', 'a') as f:
+    with open('data_lr_balanced.txt', 'a') as f:
         f.write(str(names[j])+'\n')
         f.write('ROC: ' + np.array2string(top_5_roc)+'\n')
         f.write('ROC mean: ' + str(np.mean(top_5_roc))+'\n')

@@ -8,12 +8,12 @@ from warnings import simplefilter
 simplefilter(action='ignore', category=FutureWarning)
    
 #Load data
-data = np.load('species/species_train.npz')
+data = np.load('species_train.npz')
 train_locs = data['train_locs']          
 train_ids = data['train_ids']               
 species = data['taxon_ids']      
 species_names = dict(zip(data['taxon_ids'], data['taxon_names'])) 
-
+"""
 range_list = range(len(species)) #Range from 0-499
 spec_dict = dict(zip(species, range_list)) #Dictionary matches species id with index in species
 train_ids_v2 = [] #List of train ids, now they go from 0 to 499
@@ -57,21 +57,21 @@ for sp_indices in train_inds_pos_b:
 flat_wanted_indices = [item for sublist in wanted_indices for item in sublist]
 new_train_locs = train_locs[flat_wanted_indices]
 new_train_ids = train_ids_v3[flat_wanted_indices]
-
+"""
 # test data
-data_test = np.load('species/species_test.npz', allow_pickle=True) 
+data_test = np.load('species_test.npz', allow_pickle=True) 
 test_locs = data_test['test_locs']
 test_ids = data_test['taxon_ids']
 test_species = np.unique(test_ids)
 num_locs = len(test_locs)
 test_pos_inds = dict(zip(data_test['taxon_ids'], data_test['test_pos_inds']))
 
-def errors(id, threshold, probs):
+def get_f1_score(id, threshold, probs):
     # array with 1s if species is present at that index in test_locs, 0 otherwise
     pos_inds = test_pos_inds[id]
     true = np.zeros(num_locs, dtype = int)
     true[pos_inds] = 1 
-    id_index = spec_dict[id]
+    id_index = np.where(knn.classes_ == id)[0][0]
 
     # predicted probabilities
     pred = np.zeros(num_locs)
@@ -82,21 +82,24 @@ def errors(id, threshold, probs):
     return f1
 
 
-k_vals = np.array([3,5,7,10,25,50,75,100])
+k_vals = np.array([5,10,25,50,75,100,150,250,500])
 mean_vals = np.zeros(len(k_vals))
+weights = np.load('weights.npy')
 for k in k_vals:
     # k nearest neighbours classifier
     knn = KNeighborsClassifier(n_neighbors = k)
-    knn.fit(new_train_locs, new_train_ids)
+    knn.fit(train_locs, train_ids)
     # get probability values for each id and each test loc
-    probs = knn.predict_proba(test_locs)
+    probs = knn.predict_proba(test_locs) * weights
     f1 = np.zeros(len(test_species))
     for i in range(len(test_species)):
-        f1[i] = errors(test_species[i], 1/(k_vals[i]), probs)
+        f1[i] = get_f1_score(test_species[i], 1/k, probs)
     mean_vals[np.where(k_vals == k)[0][0]] = np.mean(f1)
-    print(str(k)+' done...')
+
+print(np.max(mean_vals))
+print(k_vals[np.where(mean_vals == np.max(mean_vals))[0][0]])
 plt.xlabel(r'$k$', fontsize = 10)
 plt.ylabel('Mean F1 score', fontsize = 10)
 plt.plot(k_vals, mean_vals, marker='o', color = 'k')
-#plt.savefig('knn_f1_scores.png')
+plt.savefig('knn_f1_scores.png')
 plt.show()

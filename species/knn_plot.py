@@ -9,7 +9,7 @@ train_locs = data['train_locs']
 train_ids = data['train_ids']               
 species = data['taxon_ids']      
 species_names = dict(zip(data['taxon_ids'], data['taxon_names'])) 
-
+"""
 range_list = range(len(species)) #Range from 0-499
 spec_dict = dict(zip(species, range_list)) #Dictionary matches species id with index in species
 train_ids_v2 = [] #List of train ids, now they go from 0 to 499
@@ -53,7 +53,7 @@ for sp_indices in train_inds_pos_b:
 flat_wanted_indices = [item for sublist in wanted_indices for item in sublist]
 new_train_locs = train_locs[flat_wanted_indices]
 new_train_ids = train_ids_v3[flat_wanted_indices]
-
+"""
 # test data
 data_test = np.load('species/species_test.npz', allow_pickle=True) 
 test_locs = data_test['test_locs']
@@ -62,10 +62,11 @@ test_pos_inds = dict(zip(data_test['taxon_ids'], data_test['test_pos_inds']))
 
 # k nearest neighbours classifier, optimal k found by examining F1 scores
 knn = KNeighborsClassifier(n_neighbors = 50)
-knn.fit(new_train_locs, new_train_ids)
-
+knn.fit(train_locs, train_ids)
+weights = knn.load('weights.npy')
 id = 12716 # turdus merula
-id_index = spec_dict[id]
+id_index = np.where(knn.classes_ == id)[0][0]
+weight = weights[id_index]
 
 n_gridpoints = 1000
 lats = np.linspace(-90, 90, n_gridpoints)
@@ -74,7 +75,7 @@ pvals = np.zeros((n_gridpoints, n_gridpoints))
 
 for i in range(n_gridpoints):
     for j in range(n_gridpoints):
-        pvals[i,j] = knn.predict_proba(np.array([lats[i], longs[j]]).reshape(1,-1))[0, id_index]
+        pvals[i,j] = knn.predict_proba(np.array([lats[i], longs[j]]).reshape(1,-1))[0, id_index] * weight
 X, Y = np.meshgrid(longs, lats)
 world = gpd.read_file(gpd.datasets.get_path('naturalearth_lowres')) 
 ax = world.plot(figsize=(10, 6))

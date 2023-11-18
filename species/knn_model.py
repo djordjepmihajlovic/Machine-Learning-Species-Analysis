@@ -12,7 +12,7 @@ train_locs = data['train_locs']
 train_ids = data['train_ids']               
 species = data['taxon_ids']      
 species_names = dict(zip(data['taxon_ids'], data['taxon_names'])) 
-
+"""
 range_list = range(len(species)) #Range from 0-499
 spec_dict = dict(zip(species, range_list)) #Dictionary matches species id with index in species
 train_ids_v2 = [] #List of train ids, now they go from 0 to 499
@@ -56,7 +56,7 @@ for sp_indices in train_inds_pos_b:
 flat_wanted_indices = [item for sublist in wanted_indices for item in sublist]
 new_train_locs = train_locs[flat_wanted_indices]
 new_train_ids = train_ids_v3[flat_wanted_indices]
-
+"""
 # test data
 data_test = np.load('species/species_test.npz', allow_pickle=True) 
 test_locs = data_test['test_locs']
@@ -67,10 +67,12 @@ test_pos_inds = dict(zip(data_test['taxon_ids'], data_test['test_pos_inds']))
 
 # k nearest neighbours classifier, optimal k found by examining F1 scores
 knn = KNeighborsClassifier(n_neighbors = 4)
-knn.fit(new_train_locs, new_train_ids)
+knn.fit(train_locs, train_ids)
 # get probability values for each id and each test loc
 probs = knn.predict_proba(test_locs)
-
+# weight the probability vector at each location
+weights = np.load('species/weights.npy')
+probs *=  weights
 num_thresholds = 20
 
 def errors(id, threshold):
@@ -78,7 +80,7 @@ def errors(id, threshold):
     pos_inds = test_pos_inds[id]
     true = np.zeros(num_locs, dtype = int)
     true[pos_inds] = 1 
-    id_index = spec_dict[id]
+    id_index = np.where(knn.classes_ == id)[0][0]
 
     # true postives, false positives, false negatives, true negatives
     tp, fp, tn, fn = (np.zeros(num_locs) for i in range (4))
@@ -173,17 +175,17 @@ print('F-score all species mean: ' + str(np.mean(f1)))
 print('Kappa all species mean: ' + str(np.mean(k)))
 print('\n')
 
-with open('data.txt', 'a') as f:
+with open('data_knn_balanced.txt', 'w') as f:
     f.write('ROCAUC all species mean: ' + str(np.mean(roc))+'\n')
     f.write('PRAUC all species mean: ' + str(np.mean(pr))+'\n')
     f.write('F-score all species mean: ' + str(np.mean(f1))+'\n')
     f.write('Kappa all species mean: ' + str(np.mean(k))+'\n')
     f.write('\n')
 
-np.save('knn_roc', roc)
-np.save('knn_pr', pr)
-np.save('knn_fscore', f1)
-np.save('knn_kappa', k)
+np.save('knn_roc_balanced', roc)
+np.save('knn_pr_balanced', pr)
+np.save('knn_fscore_balanced', f1)
+np.save('knn_kappa_balanced', k)
 
 # top 5 ids for different categories
 sparsest = [4345, 44570, 42961, 32861, 2071]
@@ -197,7 +199,7 @@ j = 0
 for data in datasets:
     inds = np.zeros(5)
     for i in range(5):
-        inds[i] = spec_dict[data[i]]
+      inds[i] = np.where(knn.classes_ == data[i])[0][0]
     inds = inds.astype(int)
 
     top_5_pr = pr[inds]
@@ -216,7 +218,7 @@ for data in datasets:
     print('Kappa mean: ' + str(np.mean(top_5_k)))
     print('\n')
 
-    with open('data.txt', 'a') as f:
+    with open('data_knn_balanced.txt', 'a') as f:
         f.write(str(names[j])+'\n')
         f.write('ROC: ' + np.array2string(top_5_roc)+'\n')
         f.write('ROC mean: ' + str(np.mean(top_5_roc))+'\n')
