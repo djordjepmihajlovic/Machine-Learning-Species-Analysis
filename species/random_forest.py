@@ -109,7 +109,7 @@ small_dist = [35990, 64387, 73903, 6364, 27696]
 #Plus total!
 all_lists = [most_sparse, most_dense, larg_dist, small_dist]
 rng = 0.05
-csv_filename1 = 'cf_ditr_data.csv'
+csv_filename1 = 'cf_ditr_data2.csv'
 with open(csv_filename1, 'w', newline='') as csvfile:
     csv_writer = csv.writer(csvfile, delimiter=',')
 
@@ -155,9 +155,9 @@ with open(csv_filename1, 'w', newline='') as csvfile:
         csv_writer.writerow([f'Iteration {k}'])
         csv_writer.writerow([mean_AUC_ROC])
         csv_writer.writerow([mean_AUC_PR])
-
+"""
 csv_filename2 = 'cf_tot_data.csv'
-with open(csv_filename1, 'w', newline='') as csvfile:
+with open(csv_filename2, 'w', newline='') as csvfile:
     csv_writer = csv.writer(csvfile, delimiter=',')
 
     true_p = np.zeros((500, 20))
@@ -200,7 +200,7 @@ with open(csv_filename1, 'w', newline='') as csvfile:
     csv_writer.writerow([mean_AUC_ROC])
     csv_writer.writerow([mean_AUC_PR])
 
-
+"""
 """
 true_p = np.zeros((5, 20))
 true_n = np.zeros((5, 20))
