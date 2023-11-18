@@ -35,6 +35,9 @@ features = features_df.values
 
 print("Shape of features:", features.shape)
 print("Shape of labels:", train_ids_v3.shape)
+first_row = features_df.iloc[0]
+print("First row of features:")
+print(first_row)
 
 #Load test data plus reverse dictionary
 
