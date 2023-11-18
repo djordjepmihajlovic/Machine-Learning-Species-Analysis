@@ -21,7 +21,7 @@ import pandas as pd
 
 # at the heart of it, this is a multi label classification problem
 
-p = 'analyze'
+p = 'plott'
 
 # set up data
 data_train = np.load('species_train.npz', mmap_mode="r")
@@ -98,7 +98,7 @@ test_loader = DataLoader(test_set, batch_size=100, shuffle=True)
 net = FFNNet(input_size = 2, train_size = 64, output_size = (len(labels)))  # pulls in defined FFNN from models.py
 
 optimizer = optim.Adam(net.parameters(), lr = 0.001) # learning rate = size of steps to take, alter as see fit (0.001 is good)
-EPOCHS = 15 # defined no. of epochs, can change probably don't need too many (15 is good)
+EPOCHS = 3 # defined no. of epochs, can change probably don't need too many (15 is good)
 
 for epoch in range(EPOCHS):
     for data in train_loader:
@@ -308,7 +308,7 @@ elif p == "climate":
 
 
 else:
-    sp_iden = 12716
+    sp_iden = 14881
     sp_idx = list(labels).index(sp_iden)
     x =np.linspace(-180, 180, 100)
     y = np.linspace(-90, 90, 100)
@@ -320,7 +320,7 @@ else:
             output = net(X.view(-1, 2))
             sp_choice = output[0][sp_idx].item() # choose species of evaluation
 
-            if sp_choice < 0.0025:
+            if sp_choice < 0.05:
                 heatmap[idy, idx] = 0
 
             else:
