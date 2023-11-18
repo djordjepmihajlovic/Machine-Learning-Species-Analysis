@@ -35,6 +35,7 @@ train_ids_v3 = np.array(train_ids_v2)
 #features = features_df.values
 
 features_train = genfromtxt('species_train_5_features.csv', delimiter=',')
+features_test = genfromtxt('species_test_5_features.csv', delimiter=',')
 
 #print("Shape of features:", features.shape)
 #first_row = features_df.iloc[0]
@@ -61,7 +62,7 @@ rdf.fit(features_train, train_ids_v3)
 
 #predictions = rdf.predict(test_locs)
 
-predictions_p = rdf.predict_proba(test_locs)
+predictions_p = rdf.predict_proba(features_test)
 
 test_ids = [] #Uses the new reverse dictionary to create set ids to each of the test locations
 for index in range(len(test_locs)):
