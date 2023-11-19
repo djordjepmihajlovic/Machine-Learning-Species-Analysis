@@ -162,7 +162,7 @@ if p == "analyze":
     #         sp_idx[num].append(list(labels).index(j))
 
     # accuracy for a specific species 
-    species_test = [4208, 12716, 145300, 4636, 4146]
+    species_test = [4345, 44570, 42961, 32861, 2071]
     true_p = np.zeros((1, 20))
     true_n = np.zeros((1, 20))
     false_p = np.zeros((1, 20))
@@ -180,7 +180,7 @@ if p == "analyze":
                 sp_choice = output[el][idx].item() # choose species of evaluation
                 value_ = y[el][idx]
 
-                for idxs, specificity in enumerate(np.linspace(0.0, 0.1, 20)):
+                for idxs, specificity in enumerate(np.linspace(0.0, 0.025, 20)):
 
                     if sp_choice >=specificity and value_ == 1: # if percentage prediction is < 25% of species being there then == 0 
                         true_p[0][idxs] += 1
@@ -203,18 +203,19 @@ if p == "analyze":
 
     testing = true_p+false_p
 
-    print(true_p)
-    print(testing)
 
     for num, i in enumerate(testing[0]):
         if i == 0:
             testing[0][num] = 0.0001
-    
-    print(testing)
-
 
     precision = true_p/(testing)
     recall = true_p/(true_p + false_n)
+
+    Po = (true_n+true_p) / (true_p+true_n+false_p+false_n)
+    Pe = ((true_p+false_n)*(true_p+false_p) + (false_p+true_n)*(false_n*true_n))/(true_p+true_n+false_p+false_n)**2
+
+    F_measure = (2*precision*recall)/(precision+recall)
+    cohens_kappa = (Po-Pe)/(1-Pe)
 
     conf_mat = [[true_p[0][1]/(true_p[0][1]+false_n[0][1]), true_n[0][1]/(true_n[0][1]+false_p[0][1])], [false_p[0][1]/(true_n[0][1]+false_p[0][1]), false_n[0][1]/(false_n[0][1]+true_p[0][1])]] # ideal sensitivity
     conf_label = ['True', 'False']
@@ -242,31 +243,13 @@ if p == "analyze":
 
     plt.show()
 
+    AUCROC = np.abs(np.trapz(y=true_p_rate[0].tolist(), x=false_p_rate[0].tolist()))
+    AUCPR = np.abs(np.trapz(y=precision[0].tolist(), x=recall[0].tolist()))
 
-    AUCROC = []
-
-    AUCPR = []
-
-    AUCROC.append(np.abs(np.trapz(y=true_p_rate[0].tolist(), x=false_p_rate[0].tolist())))
-
-    AUCPR.append(np.abs(np.trapz(y=precision[0].tolist(), x=recall[0].tolist())))
-
-    print(AUCROC)
-
-    print(AUCPR)
-
-    sns.barplot(x=probs, y=AUCROC, color='b')
-    plt.xlabel('Species')
-    plt.ylabel('AUC-ROC')
-    plt.show()
-
-    sns.barplot(x=probs, y=AUCPR, color='b')
-    plt.xlabel('Species')
-    plt.ylabel('AUC-PR')
-    plt.show()
-
-    sns.heatmap(df_cm, cmap='Greys', annot=True)
-    plt.show()
+    print(f"AUCROC = {AUCROC}")
+    print(f"AUCPR = {AUCPR}")
+    print(f"F-score = {np.mean(F_measure)}")
+    print(f"Cohens Kappa = {np.mean(cohens_kappa)}")
 
 elif p == "climate":
 

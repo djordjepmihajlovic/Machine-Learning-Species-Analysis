@@ -365,6 +365,12 @@ def main():
         temp_var = pd.DataFrame(heatmap_temp)
 
 
+    elif d == "extrac":
+    
+        data_clim = np.load('scores.npy')
+        print(data_clim[0:10])
+
+
 
 
 if __name__ == "__main__":

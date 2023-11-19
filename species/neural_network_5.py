@@ -19,6 +19,8 @@ import matplotlib.pyplot as plt
 import geopandas as gpd
 import seaborn as sns
 import pandas as pd
+from matplotlib.colors import Normalize
+from matplotlib.cm import ScalarMappable
 
 # at the heart of it, this is a multi label classification problem
 
@@ -141,7 +143,7 @@ test_loader = DataLoader(test_set, batch_size=100, shuffle=True)
 net = FFNNet(input_size = 8, train_size = 256, output_size = (len(labels)))  # pulls in defined FFNN from models.py
 
 optimizer = optim.Adam(net.parameters(), lr = 0.0001) # learning rate = size of steps to take, alter as see fit (0.001 is good)
-EPOCHS = 15 # defined no. of epochs, can change probably don't need too many (15 is good)
+EPOCHS = 3 # defined no. of epochs, can change probably don't need too many (15 is good)
 
 for epoch in range(EPOCHS):
     for data in train_loader:
@@ -249,8 +251,83 @@ if p == "analyze":
 
 elif p == "plot":
 
+    # generate vulnerability scores
+
+    sp_sum = torch.zeros(500)
+
+    data_clim_coords = np.load('scores_coords.npy') # indexes [lat][lon]
+    data_clim_scores = np.load('scores.npy')
+
+    # temperature related
+    bio7 = plt.imread('wc2/wc2.1_10m_bio_7.tif') # mean temp range
+    bio10 = plt.imread('wc2/wc2.1_10m_bio_10.tif') # mean temp (cold quarter)
+    bio11 = plt.imread('wc2/wc2.1_10m_bio_11.tif') # mean temp (warm quarter)
+
+    # precipitation related
+    bio12 = plt.imread('wc2/wc2.1_10m_bio_12.tif') # annual precip
+    bio14 = plt.imread('wc2/wc2.1_10m_bio_14.tif') # precip (driest month)
+    bio15 = plt.imread('wc2/wc2.1_10m_bio_15.tif') # precip seasonality 
+
+    x_len = len(bio12)
+    y_len = len(bio12[0])
+    # temp heatmaps
+    heatmap_temp_range = np.zeros((x_len, y_len))
+    heatmap_temp_cold = np.zeros((x_len, y_len))
+    heatmap_temp_warm = np.zeros((x_len, y_len))
+
+    # precip heatmaps
+    heatmap_precip = np.zeros((x_len, y_len))
+    heatmap_precip_dry = np.zeros((x_len, y_len))
+    heatmap_precip_season = np.zeros((x_len, y_len))
+
+    for j in range(0, 2160):  
+        for i in range(0, 1080):
+            heatmap_temp_range[i][j] = bio7[i][j][0]
+            heatmap_temp_cold[i][j] = bio10[i][j][0]
+            heatmap_temp_warm[i][j] = bio11[i][j][0]
+            heatmap_precip[i][j] = bio12[i][j][0]
+            heatmap_precip_dry[i][j] = bio14[i][j][0]
+            heatmap_precip_season[i][j] = bio15[i][j][0]
+            
+    for idx, i in enumerate(data_clim_coords):
+
+        latitude = i[0] # -90 -> 90
+        lat_conv = -6*(latitude-90) -1
+        longitude = i[1] # -180 -> 180
+        long_conv = 6*(longitude+180) -1
+        temp_range = heatmap_temp_range[int(lat_conv)][int(long_conv)]
+        temp_cold = heatmap_temp_cold[int(lat_conv)][int(long_conv)]
+        temp_warm = heatmap_temp_warm[int(lat_conv)][int(long_conv)]
+
+        precip = heatmap_precip[int(lat_conv)][int(long_conv)]
+        precip_dry = heatmap_precip_dry[int(lat_conv)][int(long_conv)]
+        precip_season = heatmap_precip_season[int(lat_conv)][int(long_conv)]
+
+        if temp_range == 0.0 and temp_cold == 0.0 and temp_warm == 0.0 and precip == 0.0 and precip_dry == 0.0 and precip_season == 0.0:
+
+            sp_sum = sp_sum
+        
+        else:
+
+            X = torch.tensor([i[0], i[1], temp_range, temp_cold, temp_warm, precip, precip_dry, precip_season]).type(torch.float) # note ordering of j and i (kept confusing me yet again)
+            with torch.no_grad():
+                output = net(X.view(-1, 8))
+            sp_sum += data_clim_scores[idx] * output[0] # climate change score * prediction
+
+
+    top_5 = torch.topk(sp_sum, 5)
+    bottom_5 = torch.topk(sp_sum, 5, largest = False)
+    species_most_affected = [labels[i] for i in top_5[1]]
+    species_least_affected = [labels[i] for i in bottom_5[1]]
+
+
+    print(f"top 5 species most affected by climate change: {species_most_affected}")
+    print(f"top 5 species least affected by climate change: {species_least_affected}")
+
+    # plot species + vulnerability
+
     # sp_iden = 12832 # arid species 
-    sp_iden = 1850 
+    sp_iden = 12832 
     sp_idx = list(labels).index(sp_iden)
     x =np.linspace(-180, 180, 100)
     y = np.linspace(-90, 90, 100)
@@ -332,8 +409,99 @@ elif p == "plot":
     cs = ax.contourf(X, Y, heatmap, levels = np.linspace(10**(-10), np.max(heatmap), 10), alpha = 0.5, cmap = 'plasma')
     # cbar  = plt.colorbar(cs, ticks = [])
     # cbar.set_label('Specificity (positive predicition cut-off value)')  # Add a label to your colorbar
+
+    sp_sum = sp_sum.tolist()
+
+    sp_sum = [i/max(sp_sum) for i in sp_sum]
+
+    vulnerability = sp_sum[sp_idx]
+
+    text =  '- Vulnerability -\n'
+    text += fr'{vulnerability:.3f}'
+
+    props = dict(boxstyle='round', facecolor='wheat', alpha=0.8)  # bbox features
+    ax.text(0.05, 0.95, text, transform=ax.transAxes, fontsize=16, verticalalignment='top', bbox=props)
+
     ax.set_xticks([])
     ax.set_yticks([])
     plt.tight_layout()
     plt.show() 
+
+
+elif p == "climate":
+
+    sp_sum = torch.zeros(500)
+
+    data_clim_coords = np.load('scores_coords.npy') # indexes [lat][lon]
+    data_clim_scores = np.load('scores.npy')
+
+    # temperature related
+    bio7 = plt.imread('wc2/wc2.1_10m_bio_7.tif') # mean temp range
+    bio10 = plt.imread('wc2/wc2.1_10m_bio_10.tif') # mean temp (cold quarter)
+    bio11 = plt.imread('wc2/wc2.1_10m_bio_11.tif') # mean temp (warm quarter)
+
+    # precipitation related
+    bio12 = plt.imread('wc2/wc2.1_10m_bio_12.tif') # annual precip
+    bio14 = plt.imread('wc2/wc2.1_10m_bio_14.tif') # precip (driest month)
+    bio15 = plt.imread('wc2/wc2.1_10m_bio_15.tif') # precip seasonality 
+
+    x_len = len(bio12)
+    y_len = len(bio12[0])
+    # temp heatmaps
+    heatmap_temp_range = np.zeros((x_len, y_len))
+    heatmap_temp_cold = np.zeros((x_len, y_len))
+    heatmap_temp_warm = np.zeros((x_len, y_len))
+
+    # precip heatmaps
+    heatmap_precip = np.zeros((x_len, y_len))
+    heatmap_precip_dry = np.zeros((x_len, y_len))
+    heatmap_precip_season = np.zeros((x_len, y_len))
+
+    for j in range(0, 2160):  
+        for i in range(0, 1080):
+            heatmap_temp_range[i][j] = bio7[i][j][0]
+            heatmap_temp_cold[i][j] = bio10[i][j][0]
+            heatmap_temp_warm[i][j] = bio11[i][j][0]
+            heatmap_precip[i][j] = bio12[i][j][0]
+            heatmap_precip_dry[i][j] = bio14[i][j][0]
+            heatmap_precip_season[i][j] = bio15[i][j][0]
+            
+    for idx, i in enumerate(data_clim_coords):
+
+        latitude = i[0] # -90 -> 90
+        lat_conv = -6*(latitude-90) -1
+        longitude = i[1] # -180 -> 180
+        long_conv = 6*(longitude+180) -1
+        temp_range = heatmap_temp_range[int(lat_conv)][int(long_conv)]
+        temp_cold = heatmap_temp_cold[int(lat_conv)][int(long_conv)]
+        temp_warm = heatmap_temp_warm[int(lat_conv)][int(long_conv)]
+
+        precip = heatmap_precip[int(lat_conv)][int(long_conv)]
+        precip_dry = heatmap_precip_dry[int(lat_conv)][int(long_conv)]
+        precip_season = heatmap_precip_season[int(lat_conv)][int(long_conv)]
+
+        if temp_range == 0.0 and temp_cold == 0.0 and temp_warm == 0.0 and precip == 0.0 and precip_dry == 0.0 and precip_season == 0.0:
+
+            sp_sum = sp_sum
+        
+        else:
+
+            X = torch.tensor([i[0], i[1], temp_range, temp_cold, temp_warm, precip, precip_dry, precip_season]).type(torch.float) # note ordering of j and i (kept confusing me yet again)
+            with torch.no_grad():
+                output = net(X.view(-1, 8))
+            sp_sum += data_clim_scores[idx] * output[0] # climate change score * prediction
+
+
+    top_5 = torch.topk(sp_sum, 5)
+    bottom_5 = torch.topk(sp_sum, 5, largest = False)
+    species_most_affected = [labels[i] for i in top_5[1]]
+    species_least_affected = [labels[i] for i in bottom_5[1]]
+
+
+    print(f"top 5 species most affected by climate change: {species_most_affected}")
+    print(f"top 5 species least affected by climate change: {species_least_affected}")
+
+
+
+
 

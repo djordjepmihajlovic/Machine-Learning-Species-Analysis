@@ -6,10 +6,10 @@ import pandas as pd
 # from analysis.txt
 
 # overall, smallest distn, largest dist, densest, sparsest
-FFNN_ROCAUC = [0, 0.9973299627737877, 0.7398151304130265, 0.9080670271172481, 0.8838673788189455]
-FFNN_PRAUC = [0, 0.0009417050896884918, 0.3402472246427667, 0.3566891002006113, 0.02311410729356262]
-FFNN_fscore = []
-FFNN_cohenkappa = []
+FFNN_ROCAUC = [0, 0, 0, 0, 0]
+FFNN_PRAUC = [0, 0, 0, 0, 0]
+FFNN_fscore = [0, 0, 0, 0, 0]
+FFNN_cohenkappa = [0, 0, 0, 0, 0]
 
 KNN_ROCAUC = [0.8105266236665908, 0.9923438361031535, 0.7835499803073702, 0.7710157704264592, 0.818944868850393]
 KNN_PRAUC = [0.10453267822424134, 0.0022035294497383183, 0.29782065934594326, 0.14434688894704978, 0.011005006324878405]
@@ -43,6 +43,20 @@ df_PR = pd.DataFrame({
     'Logistic Regression': L_PRAUC
 }, index=FFNN_distns)
 
+df_F = pd.DataFrame({
+    'FF-Neural Network': FFNN_fscore,
+    'K-Nearest Neighbours': KNN_fscore,
+    'Random Forest': RF_fscore,
+    'Logistic Regression': L_fscore
+}, index=FFNN_distns)
+
+df_ck = pd.DataFrame({
+    'FF-Neural Network': FFNN_cohenkappa,
+    'K-Nearest Neighbours': KNN_cohenkappa,
+    'Random Forest': RF_cohenkappa,
+    'Logistic Regression': L_cohenkappa
+}, index=FFNN_distns)
+
 short_label = [name[:2] + '.' for name in df_PR.index]
 
 custom_palette = sns.color_palette("gray")  
@@ -57,10 +71,23 @@ plt.ylabel('AUC-ROC')
 plt.ylim(0.6, 1.0) #Added this, allows for easier comparison but would have to be mentioned in the report
 
 
+df_F.plot(kind='bar', rot=0, width = 0.7, figsize=(10,5), legend=False)
+plt.xlabel('Species Distribution type')
+plt.ylabel('F-Score')
+
+
+df_ck.plot(kind='bar', rot=0, width = 0.7, figsize=(10,5), legend=False)
+plt.xlabel('Species Distribution type')
+plt.ylabel('Cohen Kappa')
+plt.ylim(0.6, 1.0) #Added this, allows for easier comparison but would have to be mentioned in the report
+
+
 df_PR.plot(kind='bar', rot=0, width=0.7, figsize=(10, 5))
 plt.xlabel('Species Distribution type')
 plt.ylabel('AUC-PR')
 plt.legend(title='Classifiers', bbox_to_anchor = (1.15, 1.15))
+
+plt.tight_layout()
 
 
 plt.show()
