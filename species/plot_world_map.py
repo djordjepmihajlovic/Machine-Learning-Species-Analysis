@@ -15,6 +15,7 @@ species_names = dict(zip(data['taxon_ids'], data['taxon_names']))
 
 # Choosing random species
 sp = np.random.choice(species)
+sp = 41886
 train_inds_pos = np.where(train_ids == sp)[0]
 
 geometry = [Point(xy) for xy in zip(train_locs[train_inds_pos, 1], train_locs[train_inds_pos, 0])] # gets list of (lat,lon) pairs
@@ -22,5 +23,6 @@ gdf = GeoDataFrame(geometry=geometry) # creates geopandas dataframe of these pai
 
 world = gpd.read_file(gpd.datasets.get_path('naturalearth_lowres')) # world map included with geopandas, could download other maps
 gdf.plot(ax=world.plot(figsize=(10, 6)), marker='o', color='k', markersize=5)
-plt.title(str(sp) + ' - ' + species_names[sp])
+# plt.title(str(sp) + ' - ' + species_names[sp])
+plt.tight_layout()
 plt.show()

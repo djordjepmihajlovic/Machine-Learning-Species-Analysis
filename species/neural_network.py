@@ -21,7 +21,7 @@ import pandas as pd
 
 # at the heart of it, this is a multi label classification problem
 
-p = 'plott'
+p = 'analyze'
 
 # set up data
 data_train = np.load('species_train.npz', mmap_mode="r")
@@ -97,8 +97,8 @@ test_loader = DataLoader(test_set, batch_size=100, shuffle=True)
 
 net = FFNNet(input_size = 2, train_size = 64, output_size = (len(labels)))  # pulls in defined FFNN from models.py
 
-optimizer = optim.Adam(net.parameters(), lr = 0.001) # learning rate = size of steps to take, alter as see fit (0.001 is good)
-EPOCHS = 3 # defined no. of epochs, can change probably don't need too many (15 is good)
+optimizer = optim.Adam(net.parameters(), lr = 0.0001) # learning rate = size of steps to take, alter as see fit (0.001 is good)
+EPOCHS = 15 # defined no. of epochs, can change probably don't need too many (15 is good)
 
 for epoch in range(EPOCHS):
     for data in train_loader:
@@ -162,7 +162,7 @@ if p == "analyze":
     #         sp_idx[num].append(list(labels).index(j))
 
     # accuracy for a specific species 
-    species_test = [35990, 64387, 73903, 6364, 27696]
+    species_test = [4208, 12716, 145300, 4636, 4146]
     true_p = np.zeros((1, 20))
     true_n = np.zeros((1, 20))
     false_p = np.zeros((1, 20))
@@ -180,7 +180,7 @@ if p == "analyze":
                 sp_choice = output[el][idx].item() # choose species of evaluation
                 value_ = y[el][idx]
 
-                for idxs, specificity in enumerate(np.linspace(0.0, 0.025, 20)):
+                for idxs, specificity in enumerate(np.linspace(0.0, 0.1, 20)):
 
                     if sp_choice >=specificity and value_ == 1: # if percentage prediction is < 25% of species being there then == 0 
                         true_p[0][idxs] += 1
@@ -308,7 +308,7 @@ elif p == "climate":
 
 
 else:
-    sp_iden = 14881
+    sp_iden = 12832
     sp_idx = list(labels).index(sp_iden)
     x =np.linspace(-180, 180, 100)
     y = np.linspace(-90, 90, 100)
@@ -320,7 +320,7 @@ else:
             output = net(X.view(-1, 2))
             sp_choice = output[0][sp_idx].item() # choose species of evaluation
 
-            if sp_choice < 0.05:
+            if sp_choice < 0.025:
                 heatmap[idy, idx] = 0
 
             else:
@@ -332,6 +332,7 @@ else:
     cs = ax.contourf(X, Y, heatmap, levels = np.linspace(10**(-10), np.max(heatmap), 10), alpha = 0.5, cmap = 'plasma')
     ax.set_xticks([])
     ax.set_yticks([])
+    plt.tight_layout()
     plt.show() 
 
 # currently, model is good at placing localized species but bad at placing species with two distributions

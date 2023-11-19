@@ -283,6 +283,20 @@ def main():
         bio_elev = plt.imread('wc2/wc2.1_10m_elev.tif') # elev
         bio4 = plt.imread('wc2/wc2.1_10m_bio_4.tif')
         bio15 = plt.imread('wc2/wc2.1_10m_bio_15.tif')
+
+        # temperature related
+        bio7 = plt.imread('wc2/wc2.1_10m_bio_7.tif') # mean temp range
+        bio10 = plt.imread('wc2/wc2.1_10m_bio_10.tif') # mean temp (cold quarter)
+        bio11 = plt.imread('wc2/wc2.1_10m_bio_11.tif') # mean temp (warm quarter)
+
+        # precipitation related
+        bio12 = plt.imread('wc2/wc2.1_10m_bio_12.tif') # annual precip
+        bio14 = plt.imread('wc2/wc2.1_10m_bio_14.tif') # precip (driest month)
+        bio15 = plt.imread('wc2/wc2.1_10m_bio_15.tif') # precip seasonality 
+
+
+
+
         x_len = len(bio1)
         y_len = len(bio1[0])
         x = []
@@ -293,35 +307,49 @@ def main():
         heatmap_temp_seas = np.zeros((x_len, y_len))
         heatmap_precip_seas = np.zeros((x_len, y_len))
 
+        # temp heatmaps
+        heatmap_temp_range = np.zeros((x_len, y_len))
+        heatmap_temp_cold = np.zeros((x_len, y_len))
+        heatmap_temp_warm = np.zeros((x_len, y_len))
+
+        # precip heatmaps
+        heatmap_precip = np.zeros((x_len, y_len))
+        heatmap_precip_dry = np.zeros((x_len, y_len))
+        heatmap_precip_season = np.zeros((x_len, y_len))
+
         for j in range(0, 2160):  # conversion is 6...
             for i in range(0, 1080):
-                heatmap_elev[i][j] = bio_elev[i][j][0]
-                heatmap_temp[i][j] = bio1[i][j][0]
+                heatmap_temp_range[i][j] = bio7[i][j][0]
+                heatmap_temp_cold[i][j] = bio10[i][j][0]
+                heatmap_temp_warm[i][j] = bio11[i][j][0]
                 heatmap_precip[i][j] = bio12[i][j][0]
-                heatmap_temp_seas[i][j] = bio4[i][j][0]
-                heatmap_precip_seas[i][j] = bio15[i][j][0]
+                heatmap_precip_dry[i][j] = bio14[i][j][0]
+                heatmap_precip_season[i][j] = bio15[i][j][0]
 
         empt = []
 
-        for idx, i in enumerate(train_locs): # lat lon
+        for idx, i in enumerate(test_locs): # lat lon
             latitude = i[0] # -90 -> 90
             lat_conv = -6*(latitude-90)
             longitude = i[1] # -180 -> 180
             long_conv = 6*(longitude+180)
-            elevation = heatmap_elev[int(lat_conv)][int(long_conv)]
-            precipitation = heatmap_precip[int(lat_conv)][int(long_conv)]
-            temperature = heatmap_temp[int(lat_conv)][int(long_conv)]
-            temperature_seasonality = heatmap_temp_seas[int(lat_conv)][int(long_conv)]
-            precip_seasonality = heatmap_precip_seas[int(lat_conv)][int(long_conv)]
 
-            new_data = [i[0], i[1], elevation, precipitation, temperature, temperature_seasonality, precip_seasonality]
+            temp_range = heatmap_temp_range[int(lat_conv)][int(long_conv)]
+            temp_cold = heatmap_temp_cold[int(lat_conv)][int(long_conv)]
+            temp_warm = heatmap_temp_warm[int(lat_conv)][int(long_conv)]
+
+            precip = heatmap_precip[int(lat_conv)][int(long_conv)]
+            precip_dry = heatmap_precip_dry[int(lat_conv)][int(long_conv)]
+            precip_season = heatmap_precip_season[int(lat_conv)][int(long_conv)]
+
+            new_data = [i[0], i[1], temp_range, temp_cold, temp_warm, precip, precip_dry, precip_season]
             empt.append(new_data)
 
             print(idx)
 
-        # with open('species_train_7_features.csv', 'w', newline='') as f:
-        #     writer = csv.writer(f)
-        #     writer.writerows(empt) 
+        with open('species_test_8_features.csv', 'w', newline='') as f:
+            writer = csv.writer(f)
+            writer.writerows(empt) 
 
         k = -500
 
@@ -335,30 +363,6 @@ def main():
         elev_var = pd.DataFrame(heatmap_elev) # heatmaps
         precip_var = pd.DataFrame(heatmap_precip_seas)
         temp_var = pd.DataFrame(heatmap_temp)
-
-        ax = sns.heatmap(precip_var)
-        ax.set_xticks([])
-        ax.set_yticks([])
-        plt.title('Average Annual Precipitation')
-        plt.tight_layout()
-
-        plt.show()
-
-        ax = sns.heatmap(elev_var)
-        ax.set_xticks([])
-        ax.set_yticks([])
-        plt.title('Elevation')
-        plt.tight_layout()
-
-        plt.show()
-    
-        ax = sns.heatmap(temp_var)
-        ax.set_xticks([])
-        ax.set_yticks([])
-        plt.title('Average Mean Temperature')
-        plt.tight_layout()
-
-        plt.show()
 
 
 

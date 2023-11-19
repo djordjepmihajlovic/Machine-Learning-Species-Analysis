@@ -166,19 +166,27 @@ Kappa mean: 0.8763100036702353
 
 For FFNN, the results are (I just did the mean directly in my code, probs shouldve saved individual ones whoops):
 1. For top 5 sparsest:
-    Mean ROC AUC is: 0.8838673788189455
-    Mean PR AUC is: 0.02311410729356262
+    Mean ROC AUC is: 
+    Mean PR AUC is: 
+    mean F-score:
+    mean cohens kappa:
 
 2. For top 5 most dense:
-    Mean ROC AUC is 0.9080670271172481 new(0.8672008620198197)                                        
-    Mean PR AUC is 0.3566891002006113 new(0.07865012930950475)
+    Mean ROC AUC is                            
+    Mean PR AUC is
+    mean F-score:
+    mean cohens kappa:
 
 3. For top 5 largest distance:
-    Mean ROC AUC is 0.7398151304130265  new(0.817423371697749)
-    Mean PR AUC is 0.3402472246427667  new(0.1110319979702421)
+    Mean ROC AUC is: 
+    Mean PR AUC is: 
+    mean F-score:
+    mean cohens kappa:
 
 4. For top 5 smallest distance:
-    Mean ROC AUC is 0.9973299627737877 new(0.8675211479438516)                                 
-    Mean PR AUC is 0.0009417050896884918 new(0.17097533922380653)
+    Mean ROC AUC is:                                                                       
+    Mean PR AUC is:
+    mean F-score:
+    mean cohens kappa:
 
 
