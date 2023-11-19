@@ -54,6 +54,7 @@ custom_palette = sns.color_palette("gray")
 df_ROC.plot(kind='bar', rot=0, width = 0.7, figsize=(10,5), legend=False)
 plt.xlabel('Species Distribution type')
 plt.ylabel('AUC-ROC')
+plt.ylim(0.6, 1.0) #Added this, allows for easier comparison but would have to be mentioned in the report
 
 
 df_PR.plot(kind='bar', rot=0, width=0.7, figsize=(10, 5))
