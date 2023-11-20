@@ -25,7 +25,7 @@ gdf = GeoDataFrame(geometry=geometry) # creates geopandas dataframe of these pai
 
 world = gpd.read_file(gpd.datasets.get_path('naturalearth_lowres')) # world map included with geopandas, could download other maps
 gdf.plot(ax=world.plot(figsize=(10, 6)), marker='o', color='k', markersize=5)
-# plt.title(str(sp) + ' - ' + species_names[sp])
+plt.title(str(sp) + ' - ' + species_names[sp])
 
 norm = Normalize(vmin=0, vmax=1)
 sm = ScalarMappable(norm=norm, cmap='plasma')

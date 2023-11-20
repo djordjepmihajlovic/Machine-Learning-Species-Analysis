@@ -59,35 +59,67 @@ df_ck = pd.DataFrame({
 
 short_label = [name[:2] + '.' for name in df_PR.index]
 
-custom_palette = sns.color_palette("Dark2")  
+custom_palette = sns.color_palette("Set1")  
 
+sns.set_style("dark")
 sns.set_palette(custom_palette)
 
-
-
-df_ROC.plot(kind='bar', rot=0, width = 0.7, figsize=(10,5), legend=False)
-plt.xlabel('Species Distribution type')
-plt.ylabel('AUC-ROC')
-plt.ylim(0.6, 1.0) #Added this, allows for easier comparison but would have to be mentioned in the report
-
-
-df_F.plot(kind='bar', rot=0, width = 0.7, figsize=(10,5), legend=False)
-plt.xlabel('Species Distribution type')
-plt.ylabel('F-Score')
-
-
-df_ck.plot(kind='bar', rot=0, width = 0.7, figsize=(10,5), legend=False)
-plt.xlabel('Species Distribution type')
-plt.ylabel('Cohen Kappa')
-plt.ylim(0.6, 1.0) #Added this, allows for easier comparison but would have to be mentioned in the report
-
-
-df_PR.plot(kind='bar', rot=0, width=0.7, figsize=(10, 5))
-plt.xlabel('Species Distribution type')
-plt.ylabel('AUC-PR')
-plt.legend(title='Classifiers', bbox_to_anchor = (1.15, 1.15))
-
+df_ROC.plot(kind='bar', rot=0, width = 0.7, figsize=(10,5), linewidth=2.5, edgecolor = "black")
+# plt.xlabel('Species Distribution type')
+# plt.ylabel('AUC-ROC')
+plt.ylim(0.6, 1.05) #Added this, allows for easier comparison but would have to be mentioned in the report
+ax = plt.gca()
+ax.bar_label(ax.containers[0], fontsize=10, fmt='%.2f')
+ax.bar_label(ax.containers[1], fontsize=10, fmt='%.2f')
+ax.bar_label(ax.containers[2], fontsize=10, fmt='%.2f')
+ax.bar_label(ax.containers[3], fontsize=10, fmt='%.2f')
 plt.tight_layout()
+
+df_F.plot(kind='bar', rot=0, width = 0.7, figsize=(10,5), linewidth=2.5, edgecolor = "black")
+# plt.xlabel('Species Distribution type')
+plt.ylim(0, 0.6)
+
+ax = plt.gca()
+ax.bar_label(ax.containers[0], fontsize=10, fmt='%.2f')
+ax.bar_label(ax.containers[1], fontsize=10, fmt='%.2f')
+ax.bar_label(ax.containers[2], fontsize=10, fmt='%.2f')
+ax.bar_label(ax.containers[3], fontsize=10, fmt='%.2f')
+
+# ax.set_xticks([])
+ax.set_yticks([])
+plt.tight_layout()
+
+
+df_ck.plot(kind='bar', rot=0, width = 0.7, figsize=(10,5), linewidth=2.5, edgecolor = "black")
+# plt.xlabel('Species Distribution type')
+# plt.ylabel('Cohen Kappa')
+plt.ylim(0.6, 1.05) #Added this, allows for easier comparison but would have to be mentioned in the report
+ax = plt.gca()
+ax.bar_label(ax.containers[0], fontsize=10, fmt='%.2f')
+ax.bar_label(ax.containers[1], fontsize=10, fmt='%.2f')
+ax.bar_label(ax.containers[2], fontsize=10, fmt='%.2f')
+ax.bar_label(ax.containers[3], fontsize=10, fmt='%.2f')
+
+# ax.set_xticks([])
+ax.set_yticks([])
+plt.tight_layout()
+plt.legend(loc = 'upper right')
+
+df_PR.plot(kind='bar', rot=0, width=0.7, figsize=(10, 5), linewidth=2.5, edgecolor = "black")
+# plt.xlabel('Species Distribution type')
+plt.ylim(0, 0.6)
+
+ax = plt.gca()
+ax.bar_label(ax.containers[0], fontsize=10, fmt='%.2f')
+ax.bar_label(ax.containers[1], fontsize=10, fmt='%.2f')
+ax.bar_label(ax.containers[2], fontsize=10, fmt='%.2f')
+ax.bar_label(ax.containers[3], fontsize=10, fmt='%.2f')
+
+# ax.set_xticks([])
+# ax.set_yticks([])
+plt.tight_layout()
+# plt.legend(title='Classifiers', bbox_to_anchor = (1.15, 1.15))
+
 
 
 plt.show()

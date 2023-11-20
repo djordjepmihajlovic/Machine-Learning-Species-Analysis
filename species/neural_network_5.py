@@ -24,7 +24,7 @@ from matplotlib.cm import ScalarMappable
 
 # at the heart of it, this is a multi label classification problem
 
-p = 'plot'
+p = 'analyze'
 
 # set up data
 data_train = np.load('species_train.npz', mmap_mode="r")
@@ -143,7 +143,7 @@ test_loader = DataLoader(test_set, batch_size=100, shuffle=True)
 net = FFNNet(input_size = 8, train_size = 256, output_size = (len(labels)))  # pulls in defined FFNN from models.py
 
 optimizer = optim.Adam(net.parameters(), lr = 0.0001) # learning rate = size of steps to take, alter as see fit (0.001 is good)
-EPOCHS = 3 # defined no. of epochs, can change probably don't need too many (15 is good)
+EPOCHS = 15 # defined no. of epochs, can change probably don't need too many (15 is good)
 
 for epoch in range(EPOCHS):
     for data in train_loader:
@@ -159,97 +159,7 @@ for epoch in range(EPOCHS):
 
         print(loss)
 
-
-if p == "analyze":
-
-    species_test = [4146]
-    true_p = np.zeros((1, 20))
-    true_n = np.zeros((1, 20))
-    false_p = np.zeros((1, 20))
-    false_n = np.zeros((1, 20))
-    total = np.zeros((1, 20))
-
-    for idx, i in enumerate(species_test): # iterate through all labels
-
-        for data in test_loader:
-            X, y = data # note ordering of j and i (kept confusing me yet again)
-            output = net(X.view(-1, 5))
-            for el in range(0, len(output)):
-                sp_choice = output[el][idx].item() # choose species of evaluation
-                value_ = y[el][idx]
-
-                for idxs, specificity in enumerate(np.linspace(0.0, 0.025, 20)):
-
-                    if sp_choice >=specificity and value_ == 1: # if percentage prediction is < 25% of species being there then == 0 
-                        true_p[0][idxs] += 1
-
-                    elif sp_choice < specificity and value_ == 0:
-                        true_n[0][idxs] += 1
-
-                    elif sp_choice >= specificity and value_ == 0:
-                        false_p[0][idxs] += 1
-
-                    elif sp_choice < specificity and value_ == 1:
-                        false_n[0][idxs] += 1
-
-                    total[0][idxs] += 1
-
-        print(f"species analysis {i} done.")
-
-    true_p_rate = true_p/(true_p + false_n)
-    false_p_rate = false_p/(true_n + false_p)
-
-    testing = true_p+false_p
-
-    print(true_p)
-    print(testing)
-
-    for num, i in enumerate(testing[0]):
-        if i == 0:
-            testing[0][num] = 0.0001
-
-    print(testing)
-
-
-    precision = true_p/(testing)
-    recall = true_p/(true_p + false_n)
-
-    conf_mat = [[true_p[0][1]/(true_p[0][1]+false_n[0][1]), true_n[0][1]/(true_n[0][1]+false_p[0][1])], [false_p[0][1]/(true_n[0][1]+false_p[0][1]), false_n[0][1]/(false_n[0][1]+true_p[0][1])]] # ideal sensitivity
-    conf_label = ['True', 'False']
-    conf_col = ['Positive', 'Negative']
-
-    df_cm = pd.DataFrame(conf_mat, index = conf_label,
-                    columns = conf_col)
-
-    sns.set_theme()
-
-    sns.lineplot(x = false_p_rate[0].tolist(), y = true_p_rate[0].tolist())
-
-    plt.xlabel('False Positive Rate')
-    plt.ylabel('True Positive Rate')
-    ax = plt.gca()
-    ax.set_ylim([0, 1.05])
-
-    plt.show()
-
-    sns.lineplot(x = recall[0].tolist(), y = precision[0].tolist())
-    plt.xlabel('Recall')
-    plt.ylabel('Precision')
-    ax = plt.gca()
-    ax.set_ylim([0, 1.05])
-
-    plt.show()
-
-    AUCROC = []
-    AUCPR = []
-
-    AUCROC.append(np.abs(np.trapz(y=true_p_rate[0].tolist(), x=false_p_rate[0].tolist())))
-    AUCPR.append(np.abs(np.trapz(y=precision[0].tolist(), x=recall[0].tolist())))
-
-    print(AUCROC)
-    print(AUCPR)
-
-elif p == "plot":
+if p == "plot":
 
     # generate vulnerability scores
 
@@ -407,7 +317,7 @@ elif p == "plot":
     world = gpd.read_file(gpd.datasets.get_path('naturalearth_lowres')) 
     ax = world.plot(figsize=(10, 6))
     cs = ax.contourf(X, Y, heatmap, levels = np.linspace(10**(-10), np.max(heatmap), 10), alpha = 0.5, cmap = 'plasma')
-    # cbar  = plt.colorbar(cs, ticks = [])
+    cbar  = plt.colorbar(cs)
     # cbar.set_label('Specificity (positive predicition cut-off value)')  # Add a label to your colorbar
 
     sp_sum = sp_sum.tolist()
@@ -428,80 +338,108 @@ elif p == "plot":
     plt.show() 
 
 
-elif p == "climate":
+elif p == "analyze":
+    print('here')
 
-    sp_sum = torch.zeros(500)
+    sp_idx = []
+    sp_iden = [35990, 64387, 73903, 6364, 27696]
+    for num, i in enumerate(sp_iden):
+        sp_idx.append(list(labels).index(i))
 
-    data_clim_coords = np.load('scores_coords.npy') # indexes [lat][lon]
-    data_clim_scores = np.load('scores.npy')
+    # accuracy for a specific species 
+    true_p = np.zeros((1, 20))
+    true_n = np.zeros((1, 20))
+    false_p = np.zeros((1, 20))
+    false_n = np.zeros((1, 20))
+    total = np.zeros((1, 20))
+    print('here')
 
-    # temperature related
-    bio7 = plt.imread('wc2/wc2.1_10m_bio_7.tif') # mean temp range
-    bio10 = plt.imread('wc2/wc2.1_10m_bio_10.tif') # mean temp (cold quarter)
-    bio11 = plt.imread('wc2/wc2.1_10m_bio_11.tif') # mean temp (warm quarter)
+    for idx, i in enumerate(sp_idx): # iterate through 
+    # for counter, list_data in enumerate(sp_idx):
+        # for species_no, sp_idx in enumerate(list_data):
+        for data in test_loader:
+            X, y = data # note ordering of j and i (kept confusing me yet again)
+            output = net(X.view(-1, 8)) 
+            for el in range(0, len(output)):
+                # for j in range(0, len(output[0])):
+                sp_choice = output[el][i].item() # choose species of evaluation
+                value_ = y[el][i]
 
-    # precipitation related
-    bio12 = plt.imread('wc2/wc2.1_10m_bio_12.tif') # annual precip
-    bio14 = plt.imread('wc2/wc2.1_10m_bio_14.tif') # precip (driest month)
-    bio15 = plt.imread('wc2/wc2.1_10m_bio_15.tif') # precip seasonality 
+                for idxs, specificity in enumerate(np.linspace(0.0, 0.99, 20)):
 
-    x_len = len(bio12)
-    y_len = len(bio12[0])
-    # temp heatmaps
-    heatmap_temp_range = np.zeros((x_len, y_len))
-    heatmap_temp_cold = np.zeros((x_len, y_len))
-    heatmap_temp_warm = np.zeros((x_len, y_len))
+                    if sp_choice >=specificity and value_ == 1: # if percentage prediction is < 25% of species being there then == 0 
+                        true_p[0][idxs] += 1
 
-    # precip heatmaps
-    heatmap_precip = np.zeros((x_len, y_len))
-    heatmap_precip_dry = np.zeros((x_len, y_len))
-    heatmap_precip_season = np.zeros((x_len, y_len))
+                    elif sp_choice < specificity and value_ == 0:
+                        true_n[0][idxs] += 1
 
-    for j in range(0, 2160):  
-        for i in range(0, 1080):
-            heatmap_temp_range[i][j] = bio7[i][j][0]
-            heatmap_temp_cold[i][j] = bio10[i][j][0]
-            heatmap_temp_warm[i][j] = bio11[i][j][0]
-            heatmap_precip[i][j] = bio12[i][j][0]
-            heatmap_precip_dry[i][j] = bio14[i][j][0]
-            heatmap_precip_season[i][j] = bio15[i][j][0]
-            
-    for idx, i in enumerate(data_clim_coords):
+                    elif sp_choice >= specificity and value_ == 0:
+                        false_p[0][idxs] += 1
 
-        latitude = i[0] # -90 -> 90
-        lat_conv = -6*(latitude-90) -1
-        longitude = i[1] # -180 -> 180
-        long_conv = 6*(longitude+180) -1
-        temp_range = heatmap_temp_range[int(lat_conv)][int(long_conv)]
-        temp_cold = heatmap_temp_cold[int(lat_conv)][int(long_conv)]
-        temp_warm = heatmap_temp_warm[int(lat_conv)][int(long_conv)]
+                    elif sp_choice < specificity and value_ == 1:
+                        false_n[0][idxs] += 1
 
-        precip = heatmap_precip[int(lat_conv)][int(long_conv)]
-        precip_dry = heatmap_precip_dry[int(lat_conv)][int(long_conv)]
-        precip_season = heatmap_precip_season[int(lat_conv)][int(long_conv)]
+                    total[0][idxs] += 1
 
-        if temp_range == 0.0 and temp_cold == 0.0 and temp_warm == 0.0 and precip == 0.0 and precip_dry == 0.0 and precip_season == 0.0:
+        print(f"species analysis {idx} done.")
 
-            sp_sum = sp_sum
-        
-        else:
+    true_p_rate = true_p/(true_p + false_n)
+    false_p_rate = false_p/(true_n + false_p)
 
-            X = torch.tensor([i[0], i[1], temp_range, temp_cold, temp_warm, precip, precip_dry, precip_season]).type(torch.float) # note ordering of j and i (kept confusing me yet again)
-            with torch.no_grad():
-                output = net(X.view(-1, 8))
-            sp_sum += data_clim_scores[idx] * output[0] # climate change score * prediction
+    testing = true_p+false_p
 
+    for num, i in enumerate(testing[0]):
+        if i == 0:
+            testing[0][num] = 0.0001
 
-    top_5 = torch.topk(sp_sum, 5)
-    bottom_5 = torch.topk(sp_sum, 5, largest = False)
-    species_most_affected = [labels[i] for i in top_5[1]]
-    species_least_affected = [labels[i] for i in bottom_5[1]]
+    precision = true_p/(testing)
+    recall = true_p/(true_p + false_n)
 
+    testing_2 = precision + recall
 
-    print(f"top 5 species most affected by climate change: {species_most_affected}")
-    print(f"top 5 species least affected by climate change: {species_least_affected}")
+    for num, i in enumerate(testing_2[0]):
+        if i == 0:
+            testing_2[0][num] = 0.0001
 
+    Po = (true_n+true_p) / (true_p+true_n+false_p+false_n)
+    Pe = ((true_p+false_n)*(true_p+false_p) + (false_p+true_n)*(false_n*true_n))/(true_p+true_n+false_p+false_n)**2
 
+    F_measure = (2*precision*recall)/(testing_2)
+    cohens_kappa = (Po-Pe)/(1-Pe)
+
+    conf_mat = [[true_p[0][1]/(true_p[0][1]+false_n[0][1]), true_n[0][1]/(true_n[0][1]+false_p[0][1])], [false_p[0][1]/(true_n[0][1]+false_p[0][1]), false_n[0][1]/(false_n[0][1]+true_p[0][1])]] # ideal sensitivity
+    conf_label = ['True', 'False']
+    conf_col = ['Positive', 'Negative']
+
+    df_cm = pd.DataFrame(conf_mat, index = conf_label,
+                    columns = conf_col)
+
+    sns.set_theme()
+
+    sns.lineplot(x = false_p_rate[0].tolist(), y = true_p_rate[0].tolist())
+
+    plt.xlabel('False Positive Rate')
+    plt.ylabel('True Positive Rate')
+    ax = plt.gca()
+    ax.set_ylim([0, 1.05])
+
+    plt.show()
+
+    sns.lineplot(x = recall[0].tolist(), y = precision[0].tolist())
+    plt.xlabel('Recall')
+    plt.ylabel('Precision')
+    ax = plt.gca()
+    ax.set_ylim([0, 1.05])
+
+    plt.show()
+
+    AUCROC = np.abs(np.trapz(y=true_p_rate[0].tolist(), x=false_p_rate[0].tolist()))
+    AUCPR = np.abs(np.trapz(y=precision[0].tolist(), x=recall[0].tolist()))
+
+    print(f"AUCROC = {AUCROC}")
+    print(f"AUCPR = {AUCPR}")
+    print(f"F-score = {np.mean(F_measure)}")
+    print(f"Cohens Kappa = {np.mean(cohens_kappa)}")
 
 
 

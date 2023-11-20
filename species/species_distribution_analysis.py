@@ -246,17 +246,21 @@ def main():
         top_sparse_ID = [4345, 44570, 42961, 32861, 2071]
         top_sparse_data = [4.177038786428789e-05, 4.221188087170338e-05, 4.477237034420791e-05, 4.7904293356840265e-05, 4.95147014244629e-05]
 
-        sns.set_theme()
-        df_top = pd.DataFrame({'Distn.s': top_dense_data}, index=top_dense_ID)
-        df_min = pd.DataFrame({'Distn.s': top_sparse_data}, index=top_sparse_ID)
+        custom_palette = sns.color_palette("Set1")  
+        sns.set_style("dark")
+        sns.set_palette(custom_palette)
 
-        df_combined = pd.concat([df_top, df_min], keys=['Densest', 'Sparsest'])
+        df_top = pd.DataFrame({'Distn.s': top_dist_data}, index=top_ID)
+        df_min = pd.DataFrame({'Distn.s': min_dist_data}, index=min_ID)
 
-        ax = df_combined.unstack(level=0).plot(kind='bar', rot=0, legend=False)
+        df_combined = pd.concat([df_top, df_min], keys=['Largest', 'Smallest'])
+
+        ax = df_combined.unstack(level=0).plot(kind='bar', rot=0, legend=False, linewidth=2.5, edgecolor = "black")
         ax.set_xlabel('Species taxon ID')
-        ax.set_ylabel('Avg. species count per km²')
-        ax.set_title('Population density, top-5 densest vs top-5 sparsest.')
-        plt.legend(title= 'Distribution type', loc='upper right', labels=['Densest', 'Sparsest'])
+        ax.set_ylabel('Max species distn. span km')
+        plt.yscale('log')
+        plt.legend(title= 'Distribution type', labels=['Largest', 'Smallest'])
+        plt.tight_layout()
         plt.show()
 
         # ²
