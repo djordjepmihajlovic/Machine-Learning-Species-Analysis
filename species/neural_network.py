@@ -51,7 +51,7 @@ for idx, v in enumerate(train_ids): # idx is index, v is element
     species_counts[code] += 1
 
 
-species_weights = torch.tensor(len(train_locs)/(species_counts*500))
+species_weights = torch.tensor(len(train_locs)/(species_counts*500)).type(torch.double)
 
 weight_data = list(zip(species_weights, labels))
 
@@ -105,7 +105,7 @@ for epoch in range(EPOCHS):
         # data is a batch of features and labels
         X, y = data
         net.zero_grad()
-        output = net(X.view(-1, 2)) # pass through neural network
+        output = net(X.view(-1, 2))  # pass through neural network
         # produces a vector, with idea being weight per guess for each label i.e. (0, 1, 0, 1) <- guessing that label is second and fourth in potential list
         inter_loss = F.binary_cross_entropy(output, y) # BCE most ideal for a multilabel classification problem 
         loss = torch.mean(species_weights*inter_loss)
@@ -142,9 +142,6 @@ test = 0
 for i in output[0].tolist():
     test += i
 
-print(test)
-print(output[0].tolist())
-
 print(f"Top species to be observed at {location.address}: {found_sp}, with relative liklihood {ch}")
 
 if p == "analyze":
@@ -154,31 +151,30 @@ if p == "analyze":
     # 35990 gallotia stehlini
     # 4535 anous stolidus
     # 12716 turdus merula
-    sp_idx = [[]]
+    sp_idx = []
     sp_iden = [[35990, 64387, 73903, 6364, 27696], [4208, 12716, 145300, 4636, 4146], [38992, 29976, 8076, 145310, 4569], [4345, 44570, 42961, 32861, 2071]]
+    sp_iden = [4345, 44570, 42961, 32861, 2071]
     probs = ['Smallest distribution', 'Largest distribution', 'Densest population', 'Sparsest population']
-    # for num, i in enumerate(sp_iden):
-    #     for j in i:
-    #         sp_idx[num].append(list(labels).index(j))
+    for num, i in enumerate(sp_iden):
+        sp_idx.append(list(labels).index(i))
 
     # accuracy for a specific species 
-    species_test = [4345, 44570, 42961, 32861, 2071]
     true_p = np.zeros((1, 20))
     true_n = np.zeros((1, 20))
     false_p = np.zeros((1, 20))
     false_n = np.zeros((1, 20))
     total = np.zeros((1, 20))
 
-    for idx, i in enumerate(species_test): # iterate through all labels
+    for idx, i in enumerate(sp_idx): # iterate through 
     # for counter, list_data in enumerate(sp_idx):
         # for species_no, sp_idx in enumerate(list_data):
         for data in test_loader:
             X, y = data # note ordering of j and i (kept confusing me yet again)
-            output = net(X.view(-1, 2))
+            output = net(X.view(-1, 2)) 
             for el in range(0, len(output)):
                 # for j in range(0, len(output[0])):
-                sp_choice = output[el][idx].item() # choose species of evaluation
-                value_ = y[el][idx]
+                sp_choice = output[el][i].item() # choose species of evaluation
+                value_ = y[el][i]
 
                 for idxs, specificity in enumerate(np.linspace(0.0, 0.025, 20)):
 
@@ -196,7 +192,7 @@ if p == "analyze":
 
                     total[0][idxs] += 1
 
-        print(f"species analysis {i} done.")
+        print(f"species analysis {idx} done.")
 
     true_p_rate = true_p/(true_p + false_n)
     false_p_rate = false_p/(true_n + false_p)
