@@ -153,7 +153,7 @@ if p == "analyze":
     # 12716 turdus merula
     sp_idx = []
     sp_iden = [[35990, 64387, 73903, 6364, 27696], [4208, 12716, 145300, 4636, 4146], [38992, 29976, 8076, 145310, 4569], [4345, 44570, 42961, 32861, 2071]]
-    sp_iden = [4345, 44570, 42961, 32861, 2071]
+    sp_iden = [35990, 64387, 73903, 6364, 27696]
     probs = ['Smallest distribution', 'Largest distribution', 'Densest population', 'Sparsest population']
     for num, i in enumerate(sp_iden):
         sp_idx.append(list(labels).index(i))
@@ -207,10 +207,17 @@ if p == "analyze":
     precision = true_p/(testing)
     recall = true_p/(true_p + false_n)
 
+    testing_2 = precision + recall
+
+    for num, i in enumerate(testing_2[0]):
+        if i == 0:
+            testing_2[0][num] = 0.0001
+
     Po = (true_n+true_p) / (true_p+true_n+false_p+false_n)
     Pe = ((true_p+false_n)*(true_p+false_p) + (false_p+true_n)*(false_n*true_n))/(true_p+true_n+false_p+false_n)**2
 
     F_measure = (2*precision*recall)/(precision+recall)
+    F_2_measure = (5*precision*recall)/(4*testing_2)
     cohens_kappa = (Po-Pe)/(1-Pe)
 
     conf_mat = [[true_p[0][1]/(true_p[0][1]+false_n[0][1]), true_n[0][1]/(true_n[0][1]+false_p[0][1])], [false_p[0][1]/(true_n[0][1]+false_p[0][1]), false_n[0][1]/(false_n[0][1]+true_p[0][1])]] # ideal sensitivity
@@ -246,6 +253,7 @@ if p == "analyze":
     print(f"AUCPR = {AUCPR}")
     print(f"F-score = {np.mean(F_measure)}")
     print(f"Cohens Kappa = {np.mean(cohens_kappa)}")
+    print(f"F-2-score = {np.mean(F_2_measure)}")
 
 elif p == "climate":
 

@@ -24,7 +24,7 @@ from matplotlib.cm import ScalarMappable
 
 # at the heart of it, this is a multi label classification problem
 
-p = 'analyze'
+p = 'plot'
 
 # set up data
 data_train = np.load('species_train.npz', mmap_mode="r")
@@ -237,7 +237,7 @@ if p == "plot":
     # plot species + vulnerability
 
     # sp_iden = 12832 # arid species 
-    sp_iden = 12832 
+    sp_iden = 54549 
     sp_idx = list(labels).index(sp_iden)
     x =np.linspace(-180, 180, 100)
     y = np.linspace(-90, 90, 100)
@@ -406,6 +406,7 @@ elif p == "analyze":
     Pe = ((true_p+false_n)*(true_p+false_p) + (false_p+true_n)*(false_n*true_n))/(true_p+true_n+false_p+false_n)**2
 
     F_measure = (2*precision*recall)/(testing_2)
+    F_2_measure = (5*precision*recall)/(4*testing_2)
     cohens_kappa = (Po-Pe)/(1-Pe)
 
     conf_mat = [[true_p[0][1]/(true_p[0][1]+false_n[0][1]), true_n[0][1]/(true_n[0][1]+false_p[0][1])], [false_p[0][1]/(true_n[0][1]+false_p[0][1]), false_n[0][1]/(false_n[0][1]+true_p[0][1])]] # ideal sensitivity
@@ -441,6 +442,8 @@ elif p == "analyze":
     print(f"AUCPR = {AUCPR}")
     print(f"F-score = {np.mean(F_measure)}")
     print(f"Cohens Kappa = {np.mean(cohens_kappa)}")
+    print(f"F-2-score = {np.mean(F_2_measure)}")
+    
 
     print(len(species_features_test))
 

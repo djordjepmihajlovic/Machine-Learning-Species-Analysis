@@ -81,7 +81,7 @@ plt.close('all')
 plt.figure(0)
 
 sp = np.random.choice(species)
-sp = 7729
+sp = 54549
 print('\nDisplaying random species:')
 print(str(sp) + ' - ' + species_names[sp]) 
 
