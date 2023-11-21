@@ -26,6 +26,12 @@ L_PRAUC = [0.012528571301748968, 0.0, 0.17104219931619918, 0.006631496842779755,
 L_fscore = [0.1026727110688724,  0.0006248172600042169, 0.33579763108879074, 0.18635430025443672, 0.011144652755728273]
 L_cohenkappa = [0.8795202078873043, 0.8763100036702353, 0.7157382696718896, 0.8376943659152616, 0.8949911927644332]
 
+FFNN_8_ROCAUC = [0, 0.902579477951429, 0.8399361655091986, 0.9475623289230691, 0.7714732423744892]
+FFNN_8_PRAUC = [0, 0.0008611267993687207, 0.13176591437055427, 0.26639615443337517, 0.01771721266463815]
+FFNN_8_fscore = [0, 0.010320332935460402, 0.43772246993119124, 0.6205332591505883, 0.058485203311628695]
+FFNN_8_cohenkappa = [0, 0.9504894726118973, 0.9500066192512364, 0.9500019602783963 , 0.9500104658917431]
+
+
 FFNN_distns = ['Overall' ,'Smallest', 'Largest', 'Densest', 'Sparsest']
 sns.set_theme()
 
@@ -57,12 +63,25 @@ df_ck = pd.DataFrame({
     'Logistic Regression': L_cohenkappa
 }, index=FFNN_distns)
 
+df_compare = pd.DataFrame({
+    '2-feature': FFNN_ROCAUC,
+    '8-feature': np.array(FFNN_8_ROCAUC),
+}, index=FFNN_distns)
+
 short_label = [name[:2] + '.' for name in df_PR.index]
 
 custom_palette = sns.color_palette("Set1")  
 
 sns.set_style("dark")
 sns.set_palette(custom_palette)
+
+df_compare.plot(kind = 'bar', rot= 0, linewidth=2.5, edgecolor = "black")
+ax = plt.gca()
+differences = np.array(FFNN_8_ROCAUC) - np.array(FFNN_ROCAUC)
+# Label the bars with the differences
+ax.bar_label(ax.containers[1], labels=np.round(differences, 2), fontsize=10, fmt='%.2f')
+
+plt.tight_layout()
 
 df_ROC.plot(kind='bar', rot=0, width = 0.7, figsize=(10,5), linewidth=2.5, edgecolor = "black")
 # plt.xlabel('Species Distribution type')

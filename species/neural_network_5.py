@@ -342,7 +342,7 @@ elif p == "analyze":
     print('here')
 
     sp_idx = []
-    sp_iden = [35990, 64387, 73903, 6364, 27696]
+    sp_iden = [4345, 44570, 42961, 32861, 2071]
     for num, i in enumerate(sp_iden):
         sp_idx.append(list(labels).index(i))
 
@@ -359,13 +359,14 @@ elif p == "analyze":
         # for species_no, sp_idx in enumerate(list_data):
         for data in test_loader:
             X, y = data # note ordering of j and i (kept confusing me yet again)
-            output = net(X.view(-1, 8)) 
+            with torch.no_grad():
+                output = net(X.view(-1, 8)) 
             for el in range(0, len(output)):
                 # for j in range(0, len(output[0])):
                 sp_choice = output[el][i].item() # choose species of evaluation
                 value_ = y[el][i]
 
-                for idxs, specificity in enumerate(np.linspace(0.0, 0.99, 20)):
+                for idxs, specificity in enumerate(np.linspace(0.0, 0.025, 20)):
 
                     if sp_choice >=specificity and value_ == 1: # if percentage prediction is < 25% of species being there then == 0 
                         true_p[0][idxs] += 1
@@ -440,6 +441,8 @@ elif p == "analyze":
     print(f"AUCPR = {AUCPR}")
     print(f"F-score = {np.mean(F_measure)}")
     print(f"Cohens Kappa = {np.mean(cohens_kappa)}")
+
+    print(len(species_features_test))
 
 
 

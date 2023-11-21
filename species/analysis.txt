@@ -197,3 +197,33 @@ For FFNN, the results are (I just did the mean directly in my code, probs should
     Cohens Kappa = 0.950000051870154
 
 
+FFNN 8 features
+
+1. sparse
+    AUCROC = 0.7714732423744892
+    AUCPR = 0.01771721266463815
+    F-score = 0.058485203311628695
+    Cohens Kappa = 0.9500104658917431
+
+2. dense
+    AUCROC = 0.9475623289230691
+    AUCPR = 0.26639615443337517
+    F-score = 0.6205332591505883
+    Cohens Kappa = 0.9500019602783963  
+
+3. smallest
+
+    AUCROC = 0.902579477951429
+    AUCPR = 0.0008611267993687207
+    F-score = 0.010320332935460402
+    Cohens Kappa = 0.9504894726118973 
+
+4. largest
+    AUCROC = 0.8399361655091986
+    AUCPR = 0.13176591437055427
+    F-score = 0.43772246993119124
+    Cohens Kappa = 0.9500066192512364
+
+
+
+

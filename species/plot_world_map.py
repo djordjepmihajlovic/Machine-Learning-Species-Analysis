@@ -17,7 +17,6 @@ species_names = dict(zip(data['taxon_ids'], data['taxon_names']))
 
 # Choosing random species
 sp = np.random.choice(species)
-sp = 4146
 train_inds_pos = np.where(train_ids == sp)[0]
 
 geometry = [Point(xy) for xy in zip(train_locs[train_inds_pos, 1], train_locs[train_inds_pos, 0])] # gets list of (lat,lon) pairs
