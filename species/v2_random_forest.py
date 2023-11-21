@@ -31,18 +31,24 @@ train_ids_v3 = np.array(train_ids_v2)
 
 ###### NEW TRAIN DATA IN SPECIES_TRAIN_7_FEATURES
 
-#features_df = pd.read_csv('species_train_7_features.csv', sep=',')#, header=0)
-#features = features_df.values
+features_train = genfromtxt('species_train_8_features.csv', delimiter=',')
+features_test = genfromtxt('species_test_8_features.csv', delimiter=',')
 
-features_train = genfromtxt('species_train_5_features.csv', delimiter=',')
-features_test = genfromtxt('species_test_5_features.csv', delimiter=',')
+list_remove = [] # making a list of indexes to remove
 
-#print("Shape of features:", features.shape)
-#first_row = features_df.iloc[0]
-#print("Shape of labels:", train_ids_v3.shape)
-#first_row = features_df.head(1)
-#print("First row of features:")
-#print(first_row)
+for idx, i in enumerate(features_train):
+    if i[2] == i[3] == i[4] == i[5] == i[6] == i[7] == 0:
+        list_remove.append(idx)
+
+# removing ocean data
+features_train = np.array([j for i, j in enumerate(features_train) if i not in list_remove])
+
+#removing ocean data
+train_ids_v3 = np.array([j for i, j in enumerate(train_ids_v3) if i not in list_remove])
+
+print(len(features_train))
+print(len(train_ids_v3))
+print('done...')
 
 #Load test data plus reverse dictionary
 
@@ -51,6 +57,12 @@ test_locs = data_test['test_locs']
 test_pos_inds = dict(zip(data_test['taxon_ids'], data_test['test_pos_inds'])) 
 with open('reverse_dict.pkl', 'rb') as file:
     reverse_test_pos_inds = pickle.load(file)
+
+test_ids = [] #Uses the new reverse dictionary to create set ids to each of the test locations
+for index in range(len(test_locs)):
+    test_id = reverse_test_pos_inds.get(index)
+    test_ids.append(test_id)
+
 
 rdf = RandomForestClassifier(n_estimators = 100, criterion = 'gini', max_depth = 15, class_weight="balanced_subsample", random_state= 42)
 #############################################################################################################################################
@@ -64,11 +76,78 @@ rdf.fit(features_train, train_ids_v3)
 
 predictions_p = rdf.predict_proba(features_test)
 
-test_ids = [] #Uses the new reverse dictionary to create set ids to each of the test locations
-for index in range(len(test_locs)):
-    test_id = reverse_test_pos_inds.get(index)
-    test_ids.append(test_id)
+most_sparse = [4345, 44570, 42961, 32861, 2071]
+most_dense =  [38992, 29976, 8076, 145310, 4569]
+larg_dist = [4208, 12716, 145300]#, 4636, 4146]
+small_dist = [35990, 64387, 73903, 6364, 27696]
 
+#all_lists = [most_sparse, most_dense, larg_dist, small_dist]
+all_lists = [larg_dist]
+
+rng = 0.05
+csv_filename1 = 'new_cf_data.csv'
+with open(csv_filename1, 'w', newline='') as csvfile:
+    csv_writer = csv.writer(csvfile, delimiter=',')
+
+    k = 1
+    for list in all_lists:
+        true_p = np.zeros((len(list), 20))
+        true_n = np.zeros((len(list), 20))
+        false_p = np.zeros((len(list), 20))
+        false_n = np.zeros((len(list), 20))
+        total = np.zeros((len(list), 20))
+
+        j = 0
+        for id in list: #####
+            id_inx = np.where(species == id)
+            for i in range(len(test_locs)):
+                for idx, thr in enumerate(np.linspace(0.0, rng, 20)): #Maybe use 4 or 5 to start?
+                    if id in test_ids[i] and predictions_p[i][id_inx[0]] > thr:
+                        true_p[j][idx] += 1
+                    elif id in test_ids[i] and predictions_p[i][id_inx[0]] < thr:
+                        false_n[j][idx] += 1
+                    elif id not in test_ids[i] and predictions_p[i][id_inx[0]] > thr:
+                        false_p[j][idx] += 1
+                    elif id not in test_ids[i] and predictions_p[i][id_inx[0]] < thr:
+                        true_n[j][idx] += 1
+            j += 1
+            print(f"Species {j} done.")
+
+        true_p_rate = true_p/(true_p + false_n)
+        false_p_rate = false_p/(true_n + false_p)
+        precision = true_p/(true_p+false_p)
+        recall = true_p_rate
+
+        prec = []
+        for i in range(len(list)):
+            prec.append(precision[i][-1])
+        mean_prec = sum(prec)/len(prec)
+        
+        rec = []
+        for i in range(len(list)):
+            rec.append(recall[i][-1])
+        mean_rec = sum(rec)/len(rec)
+
+        f2 = 5*mean_prec*mean_rec/(4*mean_prec + mean_rec)
+
+        AUC = []
+        for i in range(len(list)):
+            AUC.append(np.abs(np.trapz(y=true_p_rate[i].tolist(), x=false_p_rate[i].tolist())))
+        mean_AUC_ROC = sum(AUC)/len(AUC)
+
+        PR_AUC = []
+        for i in range(len(list)):
+            PR_AUC.append(np.abs(np.trapz(y=precision[i].tolist(), x=recall[i].tolist())))
+        mean_AUC_PR = sum(PR_AUC)/len(PR_AUC)
+
+        csv_writer.writerow([f'Iteration {k}'])
+        csv_writer.writerow([mean_AUC_ROC])
+        csv_writer.writerow([mean_AUC_PR])
+        csv_writer.writerow([f2])
+
+
+
+"""
 id = 12716 # turdus merula
 index_TM = spec_dict.get(id)
 id_index = np.where(rdf.classes_ == index_TM)[0][0] ### OBVIAMENTE ESTO NO FUNCIONA...
@@ -92,7 +171,7 @@ np.save(file_path, pvals)
 #print(pvals.max())
 #print(pvals.min())
 #sns.set_theme()
-
+"""
 """
 X, Y = np.meshgrid(longs, lats)
 world = gpd.read_file(gpd.datasets.get_path('naturalearth_lowres')) 
@@ -102,58 +181,4 @@ ax.set_yticks([])
 cs = ax.contourf(X, Y, pvals, levels = np.linspace(0.01, 0.2, 10), alpha = 0.5, cmap = 'plasma')
 #ax.clabel(cs, inline = True)
 plt.show()
-"""
-"""
-most_sparse = [4345, 44570, 42961, 32861, 2071]
-
-all_lists = [most_sparse]
-
-rng = 0.05
-csv_filename1 = 'cf_try_data.csv'
-with open(csv_filename1, 'w', newline='') as csvfile:
-    csv_writer = csv.writer(csvfile, delimiter=',')
-
-    k = 1
-    for list in all_lists:
-        true_p = np.zeros((5, 20))
-        true_n = np.zeros((5, 20))
-        false_p = np.zeros((5, 20))
-        false_n = np.zeros((5, 20))
-        total = np.zeros((5, 20))
-
-        j = 0
-        for id in most_sparse: #####
-            id_inx = np.where(species == id)
-            for i in range(len(test_locs)):
-                for idx, thr in enumerate(np.linspace(0.0, rng, 20)): #Maybe use 4 or 5 to start?
-                    if id in test_ids[i] and predictions_p[i][id_inx[0]] > thr:
-                        true_p[j][idx] += 1
-                    elif id in test_ids[i] and predictions_p[i][id_inx[0]] < thr:
-                        false_n[j][idx] += 1
-                    elif id not in test_ids[i] and predictions_p[i][id_inx[0]] > thr:
-                        false_p[j][idx] += 1
-                    elif id not in test_ids[i] and predictions_p[i][id_inx[0]] < thr:
-                        true_n[j][idx] += 1
-            j += 1
-            print(f"Species {j} done.")
-
-        true_p_rate = true_p/(true_p + false_n)
-        false_p_rate = false_p/(true_n + false_p)
-        precision = true_p/(true_p+false_p)
-        recall = true_p_rate
-
-        AUC = []
-        for i in range(len(most_sparse)):
-            AUC.append(np.abs(np.trapz(y=true_p_rate[i].tolist(), x=false_p_rate[i].tolist())))
-        mean_AUC_ROC = sum(AUC)/len(AUC)
-
-        PR_AUC = []
-        for i in range(len(most_sparse)):
-            PR_AUC.append(np.abs(np.trapz(y=precision[i].tolist(), x=recall[i].tolist())))
-        mean_AUC_PR = sum(PR_AUC)/len(PR_AUC)
-
-        csv_writer.writerow([f'Iteration {k}'])
-        csv_writer.writerow([mean_AUC_ROC])
-        csv_writer.writerow([mean_AUC_PR])
-
 """
