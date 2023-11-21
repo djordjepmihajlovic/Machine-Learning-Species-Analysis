@@ -86,7 +86,7 @@ all_lists = [most_sparse, most_dense, larg_dist, small_dist]
 #all_lists = [larg_dist]
 
 rng = 0.05
-csv_filename1 = 'old_cf_f2.csv'
+csv_filename1 = 'ocean_cf_f2.csv'
 with open(csv_filename1, 'w', newline='') as csvfile:
     csv_writer = csv.writer(csvfile, delimiter=',')
 
