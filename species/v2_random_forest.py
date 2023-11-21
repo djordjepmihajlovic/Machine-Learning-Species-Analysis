@@ -81,8 +81,8 @@ most_dense =  [38992, 29976, 8076, 145310, 4569]
 larg_dist = [4208, 12716, 145300]#, 4636, 4146]
 small_dist = [35990, 64387, 73903, 6364, 27696]
 
-#all_lists = [most_sparse, most_dense, larg_dist, small_dist]
-all_lists = [larg_dist]
+all_lists = [most_sparse, most_dense, larg_dist, small_dist]
+#all_lists = [larg_dist]
 
 rng = 0.05
 csv_filename1 = 'new_cf_data.csv'
