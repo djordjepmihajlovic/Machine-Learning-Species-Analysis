@@ -24,7 +24,7 @@ from matplotlib.cm import ScalarMappable
 
 # at the heart of it, this is a multi label classification problem
 
-p = 'plot'
+p = 'analyze'
 
 # set up data
 data_train = np.load('species_train.npz', mmap_mode="r")

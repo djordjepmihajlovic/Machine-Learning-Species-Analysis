@@ -153,7 +153,7 @@ if p == "analyze":
     # 12716 turdus merula
     sp_idx = []
     sp_iden = [[35990, 64387, 73903, 6364, 27696], [4208, 12716, 145300, 4636, 4146], [38992, 29976, 8076, 145310, 4569], [4345, 44570, 42961, 32861, 2071]]
-    sp_iden = [35990, 64387, 73903, 6364, 27696]
+    sp_iden = [4345, 44570, 42961, 32861, 2071]
     probs = ['Smallest distribution', 'Largest distribution', 'Densest population', 'Sparsest population']
     for num, i in enumerate(sp_iden):
         sp_idx.append(list(labels).index(i))
