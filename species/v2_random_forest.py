@@ -71,11 +71,11 @@ rdf = RandomForestClassifier(n_estimators = 100, criterion = 'gini', max_depth =
 #############################################################################################################################################
 #rdf.fit(new_train_locs, new_train_ids)
 #rdf.fit(features_train, train_ids_v3)
-rdf.fit(features_train, train_ids_v3)
+rdf.fit(train_locs, train_ids_v3)
 
 #predictions = rdf.predict(test_locs)
 
-predictions_p = rdf.predict_proba(features_test)
+predictions_p = rdf.predict_proba(train_locs)
 
 most_sparse = [4345, 44570, 42961, 32861, 2071]
 most_dense =  [38992, 29976, 8076, 145310, 4569]
