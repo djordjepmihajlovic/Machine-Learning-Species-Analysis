@@ -109,11 +109,11 @@ def roc_auc(id, threshold):
     roc_auc = np.trapz(tpr, fpr)
     return roc_auc
 
-def fscore(id, threshold):
+def fscore(id, threshold, beta):
     tp, tn, fp, fn = errors(id, threshold)
     prec = tp/(tp+fp)
     rec = tp/(tp+fn)
-    fscore = (2 * prec * rec)/(prec + rec)
+    fscore = (1+beta**2)*((prec * rec)/((beta**2 * prec) + rec))
     return fscore
 
 def kappa(id, threshold):
@@ -125,9 +125,10 @@ def kappa(id, threshold):
 def get_measures(id, threshold):
     pr = pr_auc(id, threshold)
     roc = roc_auc(id, threshold)
-    f = fscore(id, threshold)
+    f1 = fscore(id, threshold, 1)
+    f2 = fscore(id, threshold, 2)
     k = kappa(id, threshold)
-    return pr, roc, f, k
+    return pr, roc, f1, f2, k
 """
 pr, roc, f1, k = (np.zeros(len(test_species)) for i in range(4)) 
 i = 0
@@ -164,21 +165,24 @@ names = ['sparsest', 'densest', 'largest', 'smallest']
 j = 0
 for data in datasets:
     if names[j] != 'largest':
-        top_5_pr, top_5_roc, top_5_f1, top_5_k = (np.zeros(5) for i in range(4))
+        top_5_pr, top_5_roc, top_5_f1, top_5_f2, top_5_k = (np.zeros(5) for i in range(5))
         for i in range(5):
-            top_5_pr[i],top_5_roc[i],top_5_f1[i],top_5_k[i] = get_measures(data[i], 0.05)
+            top_5_pr[i],top_5_roc[i],top_5_f1[i], top_5_f2[i], top_5_k[i] = get_measures(data[i], 0.05)
     else:
-        top_5_pr, top_5_roc, top_5_f1, top_5_k = (np.zeros(3) for i in range(4))
+        top_5_pr, top_5_roc, top_5_f1, top_5_f2, top_5_k = (np.zeros(3) for i in range(5))
         for i in range(3):
-            top_5_pr[i],top_5_roc[i],top_5_f1[i],top_5_k[i] = get_measures(data[i], 0.05)
+            top_5_pr[i],top_5_roc[i],top_5_f1[i], top_5_f2[i], top_5_k[i] = get_measures(data[i], 0.05)
+    
 
     print(names[j])
     print('ROC: ' + np.array2string(top_5_roc))
     print('ROC mean: ' + str(np.mean(top_5_roc)))
     print('PR: ' + np.array2string(top_5_pr))
     print('PR mean: ' + str(np.mean(top_5_pr)))
-    print('F-score: ' + np.array2string(top_5_f))
-    print('F-score mean: ' + str(np.mean(top_5_f)))
+    print('F1-score: ' + np.array2string(top_5_f1))
+    print('F1-score mean: ' + str(np.mean(top_5_f1)))
+    print('F2-score: ' + np.array2string(top_5_f2))
+    print('F2-score mean: ' + str(np.mean(top_5_f2)))
     print('Kappa: ' + np.array2string(top_5_k))
     print('Kappa mean: ' + str(np.mean(top_5_k)))
     print('\n')
@@ -189,8 +193,10 @@ for data in datasets:
         f.write('ROC mean: ' + str(np.mean(top_5_roc))+'\n')
         f.write('PR: ' + np.array2string(top_5_pr)+'\n')
         f.write('PR mean: ' + str(np.mean(top_5_pr))+'\n')
-        f.write('F-score: ' + np.array2string(top_5_f)+'\n')
-        f.write('F-score mean: ' + str(np.mean(top_5_f))+'\n')
+        f.write('F1-score: ' + np.array2string(top_5_f1)+'\n')
+        f.write('F1-score mean: ' + str(np.mean(top_5_f1))+'\n')
+        f.write('F2-score: ' + np.array2string(top_5_f2)+'\n')
+        f.write('F2-score mean: ' + str(np.mean(top_5_f2))+'\n')
         f.write('Kappa: ' + np.array2string(top_5_k)+'\n')
         f.write('Kappa mean: ' + str(np.mean(top_5_k))+'\n')
         f.write('\n')
