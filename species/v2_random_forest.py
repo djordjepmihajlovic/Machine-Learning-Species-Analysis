@@ -30,7 +30,7 @@ for indx in train_ids:
 train_ids_v3 = np.array(train_ids_v2)
 
 ###### NEW TRAIN DATA IN SPECIES_TRAIN_7_FEATURES
-"""
+
 features_train = genfromtxt('species_train_8_features.csv', delimiter=',')
 features_test = genfromtxt('species_test_8_features.csv', delimiter=',')
 
@@ -42,14 +42,14 @@ for idx, i in enumerate(features_train):
 
 # removing ocean data
 features_train = np.array([j for i, j in enumerate(features_train) if i not in list_remove])
-
+train_locs = np.array([j for i, j in enumerate(train_locs) if i not in list_remove])
 #removing ocean data
 train_ids_v3 = np.array([j for i, j in enumerate(train_ids_v3) if i not in list_remove])
 
 print(len(features_train))
 print(len(train_ids_v3))
 print('done...')
-"""
+
 #Load test data plus reverse dictionary
 
 data_test = np.load('species_test.npz', allow_pickle=True)
@@ -71,22 +71,22 @@ rdf = RandomForestClassifier(n_estimators = 100, criterion = 'gini', max_depth =
 #############################################################################################################################################
 #rdf.fit(new_train_locs, new_train_ids)
 #rdf.fit(features_train, train_ids_v3)
-rdf.fit(features_train, train_ids_v3)
+rdf.fit(train_locs, train_ids_v3)
 
 #predictions = rdf.predict(test_locs)
 
-predictions_p = rdf.predict_proba(features_test)
+predictions_p = rdf.predict_proba(test_locs)
 
 most_sparse = [4345, 44570, 42961, 32861, 2071]
 most_dense =  [38992, 29976, 8076, 145310, 4569]
-larg_dist = [4208, 12716, 145300, 4636, 4146]
+larg_dist = [4208, 12716, 145300]#, 4636, 4146]
 small_dist = [35990, 64387, 73903, 6364, 27696]
 
 all_lists = [most_sparse, most_dense, larg_dist, small_dist]
 #all_lists = [larg_dist]
 
 rng = 0.05
-csv_filename1 = 'old_cf_f2.csv'
+csv_filename1 = 'ocean_cf_f2.csv'
 with open(csv_filename1, 'w', newline='') as csvfile:
     csv_writer = csv.writer(csvfile, delimiter=',')
 
