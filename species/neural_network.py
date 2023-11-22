@@ -209,15 +209,21 @@ if p == "analyze":
 
     testing_2 = precision + recall
 
+    testing_3 = 4*precision + recall
+
     for num, i in enumerate(testing_2[0]):
         if i == 0:
             testing_2[0][num] = 0.0001
+
+    for num, i in enumerate(testing_3[0]):
+        if i == 0:
+            testing_3[0][num] = 0.0001
 
     Po = (true_n+true_p) / (true_p+true_n+false_p+false_n)
     Pe = ((true_p+false_n)*(true_p+false_p) + (false_p+true_n)*(false_n*true_n))/(true_p+true_n+false_p+false_n)**2
 
     F_measure = (2*precision*recall)/(precision+recall)
-    F_2_measure = (5*precision*recall)/(4*testing_2)
+    F_2_measure = (5*precision*recall)/(testing_3)
     cohens_kappa = (Po-Pe)/(1-Pe)
 
     conf_mat = [[true_p[0][1]/(true_p[0][1]+false_n[0][1]), true_n[0][1]/(true_n[0][1]+false_p[0][1])], [false_p[0][1]/(true_n[0][1]+false_p[0][1]), false_n[0][1]/(false_n[0][1]+true_p[0][1])]] # ideal sensitivity
@@ -295,7 +301,7 @@ elif p == "climate":
 
 
 else:
-    sp_iden = 12832
+    sp_iden = 180001
     sp_idx = list(labels).index(sp_iden)
     x =np.linspace(-180, 180, 100)
     y = np.linspace(-90, 90, 100)

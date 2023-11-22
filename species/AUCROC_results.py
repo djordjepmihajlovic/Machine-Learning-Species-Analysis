@@ -45,13 +45,19 @@ LR_8_cohenkappa = [0.99824809411658, 0.924484831435183, 0.9800375917904873,0.962
 
 # 2 feature trained data F2 scores (land data only - ommiting 4636 and 4146 from largest distn)
 
-FFNN_f2score = [0.0028110863464258238, 0.4540478790434726, 0.2721734087043962,  0.0245708445313523]
+FFNN_f2score = [0.0015587187680232322,  0.3142507803589752, 0.1773852595114277,  0.02427307733727286]
+KNN_f2score = [0.2867374951897565, 0.024911769657153155, 0.35074926448794064, 0.17816085215378735]
+LR_f2score = [0.0015595448659486764, 0.4526448860622701, 0.3395025949323818,  0.02718416316064351]
+RF_f2score = [0.6164291331654295, 0.256452371, 0.24535449960177963, 0.23204482537866267]
 
-KNN_f2score = [0.0028110863464258238, 0.4540478790434726, 0.2721734087043962,  0.0245708445313523]
+# 8 feature trained data F2 scores
 
-LR_f2score = [0.0028110863464258238, 0.4540478790434726, 0.2721734087043962,  0.0245708445313523]
+FFNN_8_f2score = [0.021896046161400416, 0.48574291976412265, 0.6387388800542697,  0.04616623553546854]
+KNN_8_f2score = [0.26010530681267463, 0.024155189874221435, 0.38982156808148005,  0.22175545981134115]
+LR_8_f2score = [0.0973767368522539, 0.17726366456166806, 0.33663020908651947,  0.09505249198503463]
+RF_8_f2score = [0.4471554352737359, 0.24655023079042418, 0.25189590099648523, 0.214568242]
 
-RF_f2score = [0.0028110863464258238, 0.4540478790434726, 0.2721734087043962,  0.0245708445313523]
+
 
 
 
@@ -89,11 +95,13 @@ df_ck = pd.DataFrame({
 
 
 df_compare = pd.DataFrame({
-    'FFNN difference': np.array(FFNN_8_fscore)-np.array(FFNN_f2score),
+    'FFNN difference': np.array(FFNN_8_f2score)-np.array(FFNN_f2score),
 
-    'KNN difference' : np.array(KNN_8_fscore) - np.array(KNN_f2score),
+    'KNN difference' : np.array(KNN_8_f2score) - np.array(KNN_f2score),
 
-    'LR difference' : np.array(LR_8_fscore) - np.array(LR_f2score),
+    'LR difference' : np.array(LR_8_f2score) - np.array(LR_f2score),
+
+    'RF difference' : np.array(RF_8_f2score) - np.array(RF_f2score)
 
 }, index=distns)
 
@@ -110,6 +118,10 @@ ax = plt.gca()
 ax.bar_label(ax.containers[0], fontsize=10, fmt='%.2f')
 ax.bar_label(ax.containers[1], fontsize=10, fmt='%.2f')
 ax.bar_label(ax.containers[2], fontsize=10, fmt='%.2f')
+
+ax.axhline(0, color='black', linewidth=2.5, linestyle='--')
+plt.ylabel('F2-Score Improvement')
+plt.ylim(-0.4, 0.4)
 
 
 plt.tight_layout()

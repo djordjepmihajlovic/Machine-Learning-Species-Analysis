@@ -224,6 +224,7 @@ if p == "plot":
                 output = net(X.view(-1, 8))
             sp_sum += data_clim_scores[idx] * output[0] # climate change score * prediction
 
+    sp_sum = torch.tensor([i/max(sp_sum) for i in sp_sum])
 
     top_5 = torch.topk(sp_sum, 5)
     bottom_5 = torch.topk(sp_sum, 5, largest = False)
@@ -231,13 +232,13 @@ if p == "plot":
     species_least_affected = [labels[i] for i in bottom_5[1]]
 
 
-    print(f"top 5 species most affected by climate change: {species_most_affected}")
-    print(f"top 5 species least affected by climate change: {species_least_affected}")
+    print(f"top 5 species most affected by climate change: {species_most_affected} with corresponding scores: {top_5[0]}")
+    print(f"top 5 species least affected by climate change: {species_least_affected} with corresponding scores: {bottom_5[0]}")
 
     # plot species + vulnerability
 
     # sp_iden = 12832 # arid species 
-    sp_iden = 54549 
+    sp_iden = 12716 
     sp_idx = list(labels).index(sp_iden)
     x =np.linspace(-180, 180, 100)
     y = np.linspace(-90, 90, 100)
@@ -317,7 +318,7 @@ if p == "plot":
     world = gpd.read_file(gpd.datasets.get_path('naturalearth_lowres')) 
     ax = world.plot(figsize=(10, 6))
     cs = ax.contourf(X, Y, heatmap, levels = np.linspace(10**(-10), np.max(heatmap), 10), alpha = 0.5, cmap = 'plasma')
-    cbar  = plt.colorbar(cs)
+    # cbar  = plt.colorbar(cs)
     # cbar.set_label('Specificity (positive predicition cut-off value)')  # Add a label to your colorbar
 
     sp_sum = sp_sum.tolist()
@@ -329,8 +330,8 @@ if p == "plot":
     text =  '- Vulnerability -\n'
     text += fr'{vulnerability:.3f}'
 
-    props = dict(boxstyle='round', facecolor='wheat', alpha=0.8)  # bbox features
-    ax.text(0.05, 0.95, text, transform=ax.transAxes, fontsize=16, verticalalignment='top', bbox=props)
+    # props = dict(boxstyle='round', facecolor='wheat', alpha=0.8)  # bbox features
+    # ax.text(0.05, 0.95, text, transform=ax.transAxes, fontsize=16, verticalalignment='bottom', bbox=props)
 
     ax.set_xticks([])
     ax.set_yticks([])
@@ -398,7 +399,13 @@ elif p == "analyze":
 
     testing_2 = precision + recall
 
+    testing_3 = 4*precision + recall
+
     for num, i in enumerate(testing_2[0]):
+        if i == 0:
+            testing_2[0][num] = 0.0001
+
+    for num, i in enumerate(testing_3[0]):
         if i == 0:
             testing_2[0][num] = 0.0001
 
@@ -406,7 +413,7 @@ elif p == "analyze":
     Pe = ((true_p+false_n)*(true_p+false_p) + (false_p+true_n)*(false_n*true_n))/(true_p+true_n+false_p+false_n)**2
 
     F_measure = (2*precision*recall)/(testing_2)
-    F_2_measure = (5*precision*recall)/(4*testing_2)
+    F_2_measure = (5*precision*recall)/(testing_3)
     cohens_kappa = (Po-Pe)/(1-Pe)
 
     conf_mat = [[true_p[0][1]/(true_p[0][1]+false_n[0][1]), true_n[0][1]/(true_n[0][1]+false_p[0][1])], [false_p[0][1]/(true_n[0][1]+false_p[0][1]), false_n[0][1]/(false_n[0][1]+true_p[0][1])]] # ideal sensitivity
