@@ -55,6 +55,10 @@ Here is a brief overview of the structure of the code layout:
 
     * generate top species continent analysis:
 
+    To obtain the species' most common continent run create_df_continent.py. Dataframe is then saved into a .csv file.
+
+    The top_species_analysis.py file does a similar procedure but only creates a file with the species with 2000 data points in the training data. What we denominated as the "top species".
+
     * generate 8 feature data:
 
     To generate the 8 feature data by extracting from the data available from WorldClim run 'species_distribution_analysis.py' as:

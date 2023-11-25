@@ -72,7 +72,6 @@ print(len(top_sp_list))
 print(top_sp_list[32])
 train_inds_pos = []
 
-#Code copied from plot_world_map 
 
 for n in top_sp_list:
     train_inds_pos.append(np.where(train_ids == n)[0])
@@ -81,22 +80,13 @@ for n in top_sp_list:
 print(len(train_inds_pos))
 print(train_inds_pos[0])
 print(train_inds_pos[1])
-"""
-
-#The following code takes some time but it takes 5 random data points from each of the most common species and finds
-# its continent, with that information I want to find in which continent each of the most common species is found
-# and then compute the top 3. For this I need to create a data frame which contains the species ID and its continents.
-# Of those continents, count the most common and assign that continent to that id.
-
-
-#Code used to create data frame:
 
 species_df = pd.DataFrame(columns=['Species ID', 'Species Name', 'Continent'])
 
 i = 0
 for species_indices in train_inds_pos: 
-    # Randomly select 5 indices from each species
-    train_inds_pos_sp = np.random.choice(species_indices, 10, replace=False)
+    # Randomly select 20 indices from each species
+    train_inds_pos_sp = np.random.choice(species_indices, 20, replace=False)
     species_idf = top_sp_list[i]
     species_namef = species_names[top_sp_list[i]]
     i += 1
@@ -164,11 +154,8 @@ for species in asia_species:
     print(species)
 
 
-"""
-#### Didnt really get the most common species for each continent, more like the species in each continent
-#### with max number of counts, this gave me many species for North America and Europe, 4 species for Oceania,
-#### 2 for Africa, 1 for Asia and South America and non for Antarctica. COUNT THEM.. next, try to find the top 
-#### 3 for Africa, Asia and Antarctica? If there are any?
+
+
 
 
 

@@ -1,9 +1,5 @@
 """
 I want to create a dataframe which include the most prominent continent for all 500 species.
-This is either not working or taking too long, dont get an error but I dont get a dataframe either
-Adding continent as a 'feature' could be useful? Maybe? Even if the information isnt technically new.
-
-Need to revise the code becuase i tried copying and pasting but it hasnt worked.. will do that soon
 """
 
 
@@ -21,69 +17,6 @@ import random
 import pandas as pd
 from collections import Counter
 
-
-# Read the CSV file into a DataFrame
-df = pd.read_csv("../../data/all_species_continent_data.csv")
-
-data = np.load('../../data/species_train.npz')
-train_locs = data['train_locs']          
-train_ids = data['train_ids']               
-species = data['taxon_ids']      
-species_names = dict(zip(data['taxon_ids'], data['taxon_names'])) 
-"""
-_, species_counts = np.unique(train_ids, return_counts=True)
-species_count = np.bincount(train_ids)
-
-top500_sp_list = []
-
-for id in species:
-    index = np.where(train_ids == id)[0]
-    count = len(index)
-    #print(count)
-    if count > 0 and count <= 500:
-        top500_sp_list.append(id)
-
-
-filter1 = df[df['Species ID'].isin(top500_sp_list)]
-
-
-
-
-
-
-# Use value_counts() to get the count of rows per continent
-continent_counts = filter1['Continent'].value_counts()
-
-# Print or use the counts as needed
-print(continent_counts)
-
-
-"""
-
-# Filter the DataFrame to get species IDs for entries where the continent is 'Europe'
-europe_species_ids = df.loc[df['Continent'] == 'South America', 'Species ID'].tolist()
-
-# Print or use the list of species IDs for Europe as needed
-#print(europe_species_ids)
-i = 0
-for id in europe_species_ids:
-    index = np.where(train_ids == id)
-    #print(index)
-    x = len(index[0])
-    #print(x)
-    i += x
-
-print(i)
-
-
-
-index = np.where(train_ids == 54549)
-print(len(index[0]))
-
-
-"""
-
-Below the code to create the continent data 
 
 def get_continent_name(continent_code: str) -> str:
     continent_dict = {
@@ -128,13 +61,13 @@ def get_continent(lat: float, lon: float) -> Tuple[str, str]:
         return "Unknown", "Unknown"
 
 
-data = np.load('species_train.npz')
+species_df = pd.DataFrame(columns=['Species ID', 'Species Name', 'Continent']) 
+
+data = np.load('../../data/species_train.npz')
 train_locs = data['train_locs']          
 train_ids = data['train_ids']               
 species = data['taxon_ids']      
 species_names = dict(zip(data['taxon_ids'], data['taxon_names'])) 
-
-species_df = pd.DataFrame(columns=['Species ID', 'Species Name', 'Continent']) #Should I add the number of 
 
 
 train_inds_pos = []
@@ -144,7 +77,7 @@ for n in species:
 i = 0
 for species_indices in train_inds_pos:
     # Randomly select 10 indices from each species
-    train_inds_pos_sp = np.random.choice(species_indices, 10, replace=False)
+    train_inds_pos_sp = np.random.choice(species_indices, 20, replace=False)
     species_idf = species[i]
     species_namef = species_names[species[i]]
     i += 1
@@ -167,5 +100,3 @@ for species_indices in train_inds_pos:
 
 # Save the species_df DataFrame to a CSV file
 species_df.to_csv('all_species_continent_data.csv', index=False)
-
-"""
