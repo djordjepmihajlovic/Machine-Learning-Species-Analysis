@@ -149,10 +149,24 @@ with open(csv_filename2, 'w', newline='') as csvfile:
     for i in range(len(species)):
         PR_AUC.append(np.abs(np.trapz(y=precision[i].tolist(), x=recall[i].tolist())))
     mean_AUC_PR = sum(PR_AUC)/len(PR_AUC)
+
+    prec = []
+    for i in range(len(list)):
+        prec.append(precision[i][-1])
+    mean_prec = sum(prec)/len(prec)
+        
+    rec = []
+    for i in range(len(list)):
+        rec.append(recall[i][-1])
+    mean_rec = sum(rec)/len(rec)
+
+    f2 = 5*mean_prec*mean_rec/(4*mean_prec + mean_rec)
+
+
     csv_writer.writerow([f'Iteration 1'])
     csv_writer.writerow([mean_AUC_ROC])
     csv_writer.writerow([mean_AUC_PR])
-
+    csv_writer.writerow([f2])
 
 
 id = 12716 # turdus merula

@@ -32,6 +32,10 @@ Here is a brief overview of the structure of the code layout:
 
     * Random Forest algorithms:
 
+    To run the results for the Random Forest trained on 2 features, run random_forest.py. This will return all the results and evaluation for the random forest, as well as a plot for a given species.
+
+    To run the results for the model trained on 8 features, run v2_random_forest.py. This will return the evaluation. Note that only F2 was added to the report.
+
     * Logistic regression algorithms:
 
     * K-Nearest Neighbour algorithms:
