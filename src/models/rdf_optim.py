@@ -21,43 +21,7 @@ for indx in train_ids:
     x = spec_dict.get(indx)
     train_ids_v2.append(x)
 train_ids_v3 = np.array(train_ids_v2)
-"""
-#Balance data
 
-mean_train = 544
-species_count = np.bincount(train_ids) 
-sp_list_a = [] 
-sp_list_b = [] 
-
-i = 0
-for n in species_count:
-    if n > mean_train: 
-        sp_list_a.append(i) 
-    elif n != 0:
-        sp_list_b.append(i)
-    i = i + 1
-
-train_inds_pos_a = [] 
-train_inds_pos_b= [] 
-wanted_indices = [] 
-
-for species_id in sp_list_a:
-    train_inds_pos_a.append(np.where(train_ids == species_id)[0])
-
-for species_id in sp_list_b:
-    train_inds_pos_b.append(np.where(train_ids == species_id)[0])
-
-for sp_indices in train_inds_pos_a:
-    sp_choice = np.random.choice(sp_indices, mean_train, replace = False) #
-    wanted_indices.append(sp_choice)
-
-for sp_indices in train_inds_pos_b:
-    wanted_indices.append(sp_indices)
-
-flat_wanted_indices = [item for sublist in wanted_indices for item in sublist]
-new_train_locs = train_locs[flat_wanted_indices]
-new_train_ids = train_ids_v3[flat_wanted_indices]
-"""
 # test data
 data_test = np.load('species_test.npz', allow_pickle=True) 
 test_locs = data_test['test_locs']
@@ -102,11 +66,10 @@ for depth in depths:
     print("depth", t)
     t += 1
 
-## COULD KEEP VALUES IN A FILE AND RUN IT IN SCHOOL COMP, THEN PLOT IT HERE...
 #print(np.max(mean_vals))
 #print(k_vals[np.where(mean_vals == np.max(mean_vals))[0][0]])
 plt.xlabel(r'$Max Depth$', fontsize = 10)
 plt.ylabel('Mean F1 score', fontsize = 10)
 plt.plot(depths, mean_vals, marker='o', color = 'k')
-plt.savefig('knn_f1_scores.png')
+plt.savefig('rdf_f1_scores.png')
 plt.show()
