@@ -163,7 +163,7 @@ print(id_index)
 n_gridpoints = 500
 lats = np.linspace(-90, 90, n_gridpoints)
 longs = np.linspace(-180, 180, n_gridpoints)
-#pvals = np.zeros((n_gridpoints, n_gridpoints))
+pvals = np.zeros((n_gridpoints, n_gridpoints))
 
 for i in range(n_gridpoints):
     for j in range(n_gridpoints):
