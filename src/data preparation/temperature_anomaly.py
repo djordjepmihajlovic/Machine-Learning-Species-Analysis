@@ -22,9 +22,9 @@ plt.figure(dpi=(150))
 ax = plt.axes(projection=ccrs.PlateCarree())
 ax.coastlines()
 plt.title('')
-p = difference.plot(cmap='OrRd', subplot_kws=subplot_kws, transform=ccrs.PlateCarree(), add_labels=False,add_colorbar=False)
-plt.colorbar(p, ticks=[0,4,8,12,16,20], shrink=0.5, label=r'Temperature Anomaly ($^\circ$C)')
-#plt.show()
+p = difference.plot(cmap='plasma', subplot_kws=subplot_kws, transform=ccrs.PlateCarree(),vmin=-20, vmax=20,add_labels=False,add_colorbar=False)
+plt.colorbar(p, shrink=0.5, label=r'Temperature Anomaly ($^\circ$C)')
+plt.show()
 
 # get a "score" by normalising by the largest increase in temp
 score = difference / difference.max()

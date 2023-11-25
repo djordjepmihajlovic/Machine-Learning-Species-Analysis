@@ -38,10 +38,17 @@ Here is a brief overview of the structure of the code layout:
 
     * Logistic regression algorithms:
 
+    To obtain the results for logistic regression trained on 2 features run log_regression_model.py. For the 8 feature model, run lr_8_features.py. To obtain the distribution plot run lr_plot.py.
+
     * K-Nearest Neighbour algorithms:
+    To find the optimal value of k run either knn_optim.py (2 feature) or (knn_8_features_optim.py). To obtain the results for knn trained on 2 features run knn_model.py. For the 8 feature model, run knn_8_features.py. To obtain the distribution plot run knn_plot.py.
 
     * Gaussian algorithm:
 
+    The Gaussian model was not used in the report, but the code can still be used to do some basic predictions on the 2 feature data. Running gaussian_model.py will generate the predicted top 3 species present at the coordinate given by Edinburgh city center. To obtain a distribution plot like for other models run gaussian_contours.py.
+
+
+    
 * /data preparation:
 
     Note, all data has already been generated and saved into the /data folder, however instructions to run the files to generate the data are given below:
@@ -66,7 +73,7 @@ Here is a brief overview of the structure of the code layout:
     The data is then saved into a .csv file
 
     * generate temperature anomaly scores:
-
+    Running temperature_anomaly.py will generate the plot of the temperature anomaly seen in the appendix, along with the scores (score.npy) and associated locations for those scores (scores_coords.npy)
 
 
 
