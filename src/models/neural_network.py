@@ -24,7 +24,7 @@ import pandas as pd
 p = 'analyze'
 
 # set up data
-data_train = np.load('species_train.npz', mmap_mode="r")
+data_train = np.load('../../data/species_train.npz', mmap_mode="r")
 train_locs = data_train['train_locs']  # X --> features of training data as tensor for PyTorch
 train_ids = data_train['train_ids']  # y --> labels of training data as tensor for PyTorch
 species_names = dict(zip(data_train['taxon_ids'], data_train['taxon_names']))  # latin names of species 
@@ -66,7 +66,7 @@ train_loader = DataLoader(train_set, batch_size=100, shuffle=True)
 
 species = data_train['taxon_ids']      # list of species IDe. Note these do not necessarily start at 0 (or 1)
 
-data_test = np.load('species_test.npz', allow_pickle=True) 
+data_test = np.load('../../data/species_test.npz', allow_pickle=True) 
 test_locs = data_test['test_locs']
 test_pos_inds = dict(zip(data_test['taxon_ids'], data_test['test_pos_inds']))   
 
@@ -260,45 +260,6 @@ if p == "analyze":
     print(f"F-score = {np.mean(F_measure)}")
     print(f"Cohens Kappa = {np.mean(cohens_kappa)}")
     print(f"F-2-score = {np.mean(F_2_measure)}")
-
-elif p == "climate":
-
-        bio2 = plt.imread('wc2/wc2.1_10m_bio_2.tif')
-        bio15 = plt.imread('wc2/wc2.1_10m_bio_15.tif')
-        x_len = len(bio2)
-        y_len = len(bio2[0])
-        x = []
-        y = []
-        heatmap_15 = np.zeros((x_len, y_len))
-        heatmap_2 = np.zeros((x_len, y_len))
-
-        for j in range(0, 2160):  # conversion is 1/6...
-            for i in range(0, 1080):
-                heatmap_15[i][j] = bio15[i][j][0]
-                heatmap_2[i][j] = bio2[i][j][0]
-
-        k = -50000
-
-        idx = np.argpartition(heatmap_15.ravel(), k)
-        p = tuple(np.array(np.unravel_index(idx, heatmap_15.shape))[:, range(min(k, 0), max(k, 0))])
-        x_rank = [(i/6)-180 for i in p[1].tolist()]
-        y_rank = [(-i/6)+90 for i in p[0].tolist()]
-
-        locations = list(zip(y_rank, x_rank))
-
-        analysis = np.zeros((1, 500))
-
-        for i in locations:
-            dat = torch.tensor(i)
-            output = net(dat.view(-1, 2))
-            analysis += output.detach().numpy()
-
-        most_affected = np.argsort(analysis) # top most affected
-
-        most_affected_names = [labels[element] for element in most_affected]
-
-        print(most_affected_names)
-
 
 else:
     sp_iden = 180001

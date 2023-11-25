@@ -5,7 +5,6 @@ import torch
 import torch.optim as optim
 from torch.utils.data import TensorDataset, DataLoader
 import torch.nn.functional as F
-import csv
 from numpy import genfromtxt
 
 # geopy used to decode lat/lon to named address
@@ -24,13 +23,12 @@ from matplotlib.cm import ScalarMappable
 
 # at the heart of it, this is a multi label classification problem
 
-p = 'analyze'
-
+p = 'plot'
 # set up data
-data_train = np.load('species_train.npz', mmap_mode="r")
+data_train = np.load('../../data/species_train.npz', mmap_mode="r")
 train_locs = data_train['train_locs']  # original X --> features of training data as tensor for PyTorch
 
-species_features_train = genfromtxt('species_train_8_features.csv', delimiter=',') # new X 
+species_features_train = genfromtxt('../../data/species_train_8_features.csv', delimiter=',') # new X 
 
 list_remove = [] # making a list of indexes to remove
 
@@ -94,7 +92,7 @@ train_loader = DataLoader(train_set, batch_size=100, shuffle=True)
 
 species = data_train['taxon_ids']      # list of species IDe. Note these do not necessarily start at 0 (or 1)
 
-data_test = np.load('species_test.npz', allow_pickle=True) 
+data_test = np.load('../../data/species_test.npz', allow_pickle=True) 
 test_locs = data_test['test_locs']
 test_pos_inds = dict(zip(data_test['taxon_ids'], data_test['test_pos_inds']))  
 
@@ -116,7 +114,7 @@ for species_id, index in test_pos_inds.items(): # species ids in dict
     for idx, i in enumerate(index):
         test_labels[i][point] = 1
 
-species_features_test = genfromtxt('species_test_8_features.csv', delimiter=',') # new X 
+species_features_test = genfromtxt('../../data/species_test_8_features.csv', delimiter=',') # new X 
 
 list_remove = [] # making a list of indexes to remove now for test
 
@@ -165,18 +163,18 @@ if p == "plot":
 
     sp_sum = torch.zeros(500)
 
-    data_clim_coords = np.load('scores_coords.npy') # indexes [lat][lon]
-    data_clim_scores = np.load('scores.npy')
+    data_clim_coords = np.load('../../data/scores_coords.npy') # indexes [lat][lon]
+    data_clim_scores = np.load('../../data/scores.npy')
 
     # temperature related
-    bio7 = plt.imread('wc2/wc2.1_10m_bio_7.tif') # mean temp range
-    bio10 = plt.imread('wc2/wc2.1_10m_bio_10.tif') # mean temp (cold quarter)
-    bio11 = plt.imread('wc2/wc2.1_10m_bio_11.tif') # mean temp (warm quarter)
+    bio7 = plt.imread('../../data/wc2/wc2.1_10m_bio_7.tif') # mean temp range
+    bio10 = plt.imread('../../data/wc2/wc2.1_10m_bio_10.tif') # mean temp (cold quarter)
+    bio11 = plt.imread('../../data/wc2/wc2.1_10m_bio_11.tif') # mean temp (warm quarter)
 
     # precipitation related
-    bio12 = plt.imread('wc2/wc2.1_10m_bio_12.tif') # annual precip
-    bio14 = plt.imread('wc2/wc2.1_10m_bio_14.tif') # precip (driest month)
-    bio15 = plt.imread('wc2/wc2.1_10m_bio_15.tif') # precip seasonality 
+    bio12 = plt.imread('../../data/wc2/wc2.1_10m_bio_12.tif') # annual precip
+    bio14 = plt.imread('../../data/wc2/wc2.1_10m_bio_14.tif') # precip (driest month)
+    bio15 = plt.imread('../../data/wc2/wc2.1_10m_bio_15.tif') # precip seasonality 
 
     x_len = len(bio12)
     y_len = len(bio12[0])
@@ -238,7 +236,7 @@ if p == "plot":
     # plot species + vulnerability
 
     # sp_iden = 12832 # arid species 
-    sp_iden = 12716 
+    sp_iden = 64387 
     sp_idx = list(labels).index(sp_iden)
     x =np.linspace(-180, 180, 100)
     y = np.linspace(-90, 90, 100)
@@ -246,14 +244,14 @@ if p == "plot":
     heatmap_tester = np.zeros((len(y), len(x)))
 
     # temperature related
-    bio7 = plt.imread('wc2/wc2.1_10m_bio_7.tif') # mean temp range
-    bio10 = plt.imread('wc2/wc2.1_10m_bio_10.tif') # mean temp (cold quarter)
-    bio11 = plt.imread('wc2/wc2.1_10m_bio_11.tif') # mean temp (warm quarter)
+    bio7 = plt.imread('../../data/wc2/wc2.1_10m_bio_7.tif') # mean temp range
+    bio10 = plt.imread('../../data/wc2/wc2.1_10m_bio_10.tif') # mean temp (cold quarter)
+    bio11 = plt.imread('../../data/wc2/wc2.1_10m_bio_11.tif') # mean temp (warm quarter)
 
     # precipitation related
-    bio12 = plt.imread('wc2/wc2.1_10m_bio_12.tif') # annual precip
-    bio14 = plt.imread('wc2/wc2.1_10m_bio_14.tif') # precip (driest month)
-    bio15 = plt.imread('wc2/wc2.1_10m_bio_15.tif') # precip seasonality 
+    bio12 = plt.imread('../../data/wc2/wc2.1_10m_bio_12.tif') # annual precip
+    bio14 = plt.imread('../../data/wc2/wc2.1_10m_bio_14.tif') # precip (driest month)
+    bio15 = plt.imread('../../data/wc2/wc2.1_10m_bio_15.tif') # precip seasonality 
 
     x_len = len(bio12)
     y_len = len(bio12[0])

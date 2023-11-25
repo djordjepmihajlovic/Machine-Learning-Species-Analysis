@@ -33,22 +33,22 @@ def get_params(): # runs chosen problem
 
 def main():
     # load train data
-    data = np.load('species_train.npz')
+    data = np.load('../../data/species_train.npz')
     train_locs = data['train_locs']          
     train_ids = data['train_ids']               
     species = data['taxon_ids']      
     species_names = dict(zip(data['taxon_ids'], data['taxon_names'])) 
 
     # loading test data 
-    data_test = np.load('species_test.npz', allow_pickle=True)
+    data_test = np.load('../../data/species_test.npz', allow_pickle=True)
     test_locs = data_test['test_locs']
     test_pos_inds = dict(zip(data_test['taxon_ids'], data_test['test_pos_inds']))  
 
     # loading train_extra data
-    data_extra = np.load('species_train_extra.npz',) 
+    data_extra = np.load('../../data/species_train_extra.npz',) 
 
-    species_train_dist = Path("species_train_dist.csv")
-    species_train_dense = Path("species_train_dense.csv")
+    species_train_dist = Path("../../data/species_train_dist.csv")
+    species_train_dense = Path("../../data/species_train_dense.csv")
 
     if species_train_dist.is_file() == False or species_train_dense.is_file() == False: # need to create the data
 
@@ -75,11 +75,11 @@ def main():
             count += 1
             print(f"species {species_names[sp]} done!, max distribution: {max(dist)}, {count} out of 500")
 
-        with open('species_train_dist.csv', 'w', newline='') as f:
+        with open('../../data/species_train_dist.csv', 'w', newline='') as f:
             writer = csv.writer(f)
             writer.writerows(species_distn) # saves in file if file didn't exist - now function doesn't need to be run
 
-        with open('species_train_dense.csv', 'w', newline='') as f:
+        with open('../../data/species_train_dense.csv', 'w', newline='') as f:
             writer = csv.writer(f)
             writer.writerows(species_dense) # saves in file if file didn't exist - now function doesn't need to be run
 
@@ -89,7 +89,7 @@ def main():
 
         # sns.set_style('darkgrid')
 
-        with open('species_train_dist.csv', newline='') as f:
+        with open('../../data/species_train_dist.csv', newline='') as f:
             reader = csv.reader(f)
             species_distn = list(reader)
 
@@ -129,7 +129,7 @@ def main():
 
     elif d == "density":
 
-        with open('species_train_dense.csv', newline='') as f:
+        with open('../../data/species_train_dense.csv', newline='') as f:
             reader = csv.reader(f)
             species_dense = list(reader)
 
@@ -233,6 +233,10 @@ def main():
         plt.show()
 
     elif d == "plot_result":
+
+        continent = ['N. America', 'Europe', 'Oceania', 'Asia', 'Africa', 'S. America', 'Antarctica']
+
+        dat = [944.6, 1022.8, 489.9, 333.1, 268.3, 284.9, 208]
     
         top_dist_names = ['Podiceps' + '\n' + ' cristatus', 'Turdus' + '\n' + ' merula', 'Acanthis' + '\n' + ' flammea', 'Fregata' + '\n' + ' minor', 'Oceanites' + '\n' + ' oceanicus']
         top_ID = [4208, 12716, 145300, 4636, 4146]
@@ -250,16 +254,22 @@ def main():
         sns.set_style("dark")
         sns.set_palette(custom_palette)
 
-        df_top = pd.DataFrame({'Distn.s': top_dist_data}, index=top_ID)
-        df_min = pd.DataFrame({'Distn.s': min_dist_data}, index=min_ID)
+        df_top = pd.DataFrame({'Distn.s': top_dense_data}, index=top_dense_ID)
+        df_min = pd.DataFrame({'Distn.s': top_sparse_data}, index=top_sparse_ID)
 
-        df_combined = pd.concat([df_top, df_min], keys=['Largest', 'Smallest'])
+        df_analysis = pd.DataFrame({'Continent Observations': dat}, index=continent)
 
-        ax = df_combined.unstack(level=0).plot(kind='bar', rot=0, legend=False, linewidth=2.5, edgecolor = "black")
-        ax.set_xlabel('Species taxon ID')
-        ax.set_ylabel('Max species distn. span km')
-        plt.yscale('log')
-        plt.legend(title= 'Distribution type', labels=['Largest', 'Smallest'])
+        df_combined = pd.concat([df_top, df_min], keys=['Densest', 'Sparsest'])
+
+
+
+        ax = df_combined.unstack(level=0).plot(kind='bar', rot=0, legend=False, width = 0.9, linewidth=2.5, figsize=(7,3), edgecolor = "black")
+
+        ax = df_analysis.plot(kind='bar', rot=0, legend=False, width = 0.7, linewidth=2.5, figsize=(5,4), edgecolor = "black", color='steelblue')
+        ax.set_xlabel('Continent')
+        ax.set_ylabel('Avg. Observations per species')
+        ax.tick_params(width=2, length = 4)
+        # plt.legend(title= 'Distribution type', labels=['Densest', 'Sparsest'])
         plt.tight_layout()
         plt.show()
 
@@ -282,21 +292,21 @@ def main():
         # 7 = temp range.
         # ...
 
-        bio1 = plt.imread('wc2/wc2.1_10m_bio_1.tif') # mean temp
-        bio12 = plt.imread('wc2/wc2.1_10m_bio_12.tif') # precip
-        bio_elev = plt.imread('wc2/wc2.1_10m_elev.tif') # elev
-        bio4 = plt.imread('wc2/wc2.1_10m_bio_4.tif')
-        bio15 = plt.imread('wc2/wc2.1_10m_bio_15.tif')
+        bio1 = plt.imread('../../data/wc2/wc2.1_10m_bio_1.tif') # mean temp
+        bio12 = plt.imread('../../data/wc2/wc2.1_10m_bio_12.tif') # precip
+        bio_elev = plt.imread('../../data/wc2/wc2.1_10m_elev.tif') # elev
+        bio4 = plt.imread('../../data/wc2/wc2.1_10m_bio_4.tif')
+        bio15 = plt.imread('../../data/wc2/wc2.1_10m_bio_15.tif')
 
         # temperature related
-        bio7 = plt.imread('wc2/wc2.1_10m_bio_7.tif') # mean temp range
-        bio10 = plt.imread('wc2/wc2.1_10m_bio_10.tif') # mean temp (cold quarter)
-        bio11 = plt.imread('wc2/wc2.1_10m_bio_11.tif') # mean temp (warm quarter)
+        bio7 = plt.imread('../../data/wc2/wc2.1_10m_bio_7.tif') # mean temp range
+        bio10 = plt.imread('../../data/wc2/wc2.1_10m_bio_10.tif') # mean temp (cold quarter)
+        bio11 = plt.imread('../../data/wc2/wc2.1_10m_bio_11.tif') # mean temp (warm quarter)
 
         # precipitation related
-        bio12 = plt.imread('wc2/wc2.1_10m_bio_12.tif') # annual precip
-        bio14 = plt.imread('wc2/wc2.1_10m_bio_14.tif') # precip (driest month)
-        bio15 = plt.imread('wc2/wc2.1_10m_bio_15.tif') # precip seasonality 
+        bio12 = plt.imread('../../data/wc2/wc2.1_10m_bio_12.tif') # annual precip
+        bio14 = plt.imread('../../data/wc2/wc2.1_10m_bio_14.tif') # precip (driest month)
+        bio15 = plt.imread('../../data/wc2/wc2.1_10m_bio_15.tif') # precip seasonality 
 
 
 
@@ -351,7 +361,7 @@ def main():
 
             print(idx)
 
-        with open('species_test_8_features.csv', 'w', newline='') as f:
+        with open('../../data/species_test_8_features.csv', 'w', newline='') as f:
             writer = csv.writer(f)
             writer.writerows(empt) 
 
@@ -367,14 +377,6 @@ def main():
         elev_var = pd.DataFrame(heatmap_elev) # heatmaps
         precip_var = pd.DataFrame(heatmap_precip_seas)
         temp_var = pd.DataFrame(heatmap_temp)
-
-
-    elif d == "extrac":
-    
-        data_clim = np.load('scores.npy')
-        print(data_clim[0:10])
-
-
 
 
 if __name__ == "__main__":

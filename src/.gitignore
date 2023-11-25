@@ -1,0 +1,3 @@
+*.png
+/data preparation/plot_world_map.py
+/data preparation/explore_species_data.py
