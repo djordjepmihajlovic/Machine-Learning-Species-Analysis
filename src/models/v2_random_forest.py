@@ -64,14 +64,9 @@ for index in range(len(test_locs)):
     test_ids.append(test_id)
 
 
-rdf = RandomForestClassifier(n_estimators = 100, criterion = 'gini', max_depth = 15, class_weight="balanced_subsample", random_state= 42)
-#############################################################################################################################################
-# Should keep working on best parameters for max_depth and eventually do it with 100 estimators.
-# Using max depth = 18, from graph I think 15 could be argued as good accuracy without over fitting too much
-#############################################################################################################################################
-#rdf.fit(new_train_locs, new_train_ids)
-#rdf.fit(features_train, train_ids_v3)
-rdf.fit(train_locs, train_ids_v3)
+rdf = RandomForestClassifier(n_estimators = 100, criterion = 'gini', max_depth = 10, class_weight="balanced_subsample")
+
+rdf.fit(features_train, train_ids_v3)
 
 #predictions = rdf.predict(test_locs)
 
@@ -83,7 +78,6 @@ larg_dist = [4208, 12716, 145300]#, 4636, 4146]
 small_dist = [35990, 64387, 73903, 6364, 27696]
 
 all_lists = [most_sparse, most_dense, larg_dist, small_dist]
-#all_lists = [larg_dist]
 
 rng = 0.05
 csv_filename1 = 'ocean_cf_f2.csv'
@@ -99,10 +93,10 @@ with open(csv_filename1, 'w', newline='') as csvfile:
         total = np.zeros((len(list), 20))
 
         j = 0
-        for id in list: #####
+        for id in list:
             id_inx = np.where(species == id)
             for i in range(len(test_locs)):
-                for idx, thr in enumerate(np.linspace(0.0, rng, 20)): #Maybe use 4 or 5 to start?
+                for idx, thr in enumerate(np.linspace(0.0, rng, 20)): 
                     if id in test_ids[i] and predictions_p[i][id_inx[0]] > thr:
                         true_p[j][idx] += 1
                     elif id in test_ids[i] and predictions_p[i][id_inx[0]] < thr:
@@ -129,9 +123,8 @@ with open(csv_filename1, 'w', newline='') as csvfile:
             rec.append(recall[i][-1])
         mean_rec = sum(rec)/len(rec)
 
-        f1 = 2*mean_prec*mean_rec/(mean_prec + mean_rec)
         f2 = 5*mean_prec*mean_rec/(4*mean_prec + mean_rec)
-        """
+        
         AUC = []
         for i in range(len(list)):
             AUC.append(np.abs(np.trapz(y=true_p_rate[i].tolist(), x=false_p_rate[i].tolist())))
@@ -141,48 +134,10 @@ with open(csv_filename1, 'w', newline='') as csvfile:
         for i in range(len(list)):
             PR_AUC.append(np.abs(np.trapz(y=precision[i].tolist(), x=recall[i].tolist())))
         mean_AUC_PR = sum(PR_AUC)/len(PR_AUC)
-        """
+        
         csv_writer.writerow([f'Iteration {k}'])
-        #csv_writer.writerow([mean_AUC_ROC])
-        #csv_writer.writerow([mean_AUC_PR])
-        csv_writer.writerow([f1])
+        csv_writer.writerow([mean_AUC_ROC])
+        csv_writer.writerow([mean_AUC_PR])
         csv_writer.writerow([f2])
         k += 1
 
-
-
-"""
-id = 12716 # turdus merula
-index_TM = spec_dict.get(id)
-id_index = np.where(rdf.classes_ == index_TM)[0][0] ### OBVIAMENTE ESTO NO FUNCIONA...
-print(id_index)
-
-n_gridpoints = 500
-lats = np.linspace(-90, 90, n_gridpoints)
-longs = np.linspace(-180, 180, n_gridpoints)
-pvals = np.zeros((n_gridpoints, n_gridpoints))
-
-for i in range(n_gridpoints):
-    for j in range(n_gridpoints):
-        pvals[i,j] = rdf.predict_proba(np.array([lats[i], longs[j]]).reshape(1,-1))[0, id_index]
-
-file_path = 'pvals_newfeatures.npy'
-
-# Save the pvals array to the specified file
-np.save(file_path, pvals)
-
-#pvals = np.load('pvals.npy')
-#print(pvals.max())
-#print(pvals.min())
-#sns.set_theme()
-"""
-"""
-X, Y = np.meshgrid(longs, lats)
-world = gpd.read_file(gpd.datasets.get_path('naturalearth_lowres')) 
-ax = world.plot(figsize=(10, 6))
-ax.set_xticks([])
-ax.set_yticks([])
-cs = ax.contourf(X, Y, pvals, levels = np.linspace(0.01, 0.2, 10), alpha = 0.5, cmap = 'plasma')
-#ax.clabel(cs, inline = True)
-plt.show()
-"""
