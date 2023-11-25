@@ -11,7 +11,7 @@ from sklearn.metrics import confusion_matrix
 
 
 #Load data
-data = np.load('species_train.npz')
+data = np.load('../../data/species_train.npz')
 train_locs = data['train_locs']          
 train_ids = data['train_ids']               
 species = data['taxon_ids']      

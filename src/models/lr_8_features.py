@@ -4,10 +4,10 @@ from sklearn.linear_model import LogisticRegression
 import pickle
 
 # train data
-data_train = np.load('species_train.npz', mmap_mode="r")
+data_train = np.load('../../data/species_train.npz', mmap_mode="r")
 train_ids = data_train['train_ids']
 
-species_features_train = genfromtxt('species_train_8_features.csv', delimiter=',') # new train data
+species_features_train = genfromtxt('../../data/species_train_8_features.csv', delimiter=',') # new train data
 list_remove = [] # making a list of indexes to remove
 
 for idx, i in enumerate(species_features_train):
@@ -19,9 +19,9 @@ species_features_train = np.array([j for i, j in enumerate(species_features_trai
 species_labels_train = np.array([j for i, j in enumerate(train_ids) if i not in list_remove])
 
 # test data
-data_test = np.load('species_test.npz', allow_pickle=True)
+data_test = np.load('../../data/species_test.npz', allow_pickle=True)
 test_ids = data_test['taxon_ids']
-species_features_test = np.genfromtxt('species_test_8_features.csv', delimiter=',') # new X 
+species_features_test = np.genfromtxt('../../data/species_test_8_features.csv', delimiter=',') # new X 
 test_pos_inds = dict(zip(test_ids, data_test['test_pos_inds']))
 test_species = np.unique(test_ids)
 num_locs = len(species_features_test)

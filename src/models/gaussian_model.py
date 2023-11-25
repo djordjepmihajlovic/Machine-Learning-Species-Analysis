@@ -7,14 +7,14 @@ import seaborn as sns
 import matplotlib.pyplot as plt
 
 # load train data
-data = np.load('species/species_train.npz')
+data = np.load('../../data/species_train.npz')
 ids = data['train_ids']
 classes = np.unique(ids)
 coords = np.array(list(zip(data['train_locs'][:,0], data['train_locs'][:,1]))) 
 species_names = dict(zip(data['taxon_ids'], data['taxon_names']))
 
 # test data
-data_test = np.load('species/species_test.npz', allow_pickle=True) 
+data_test = np.load('../../data/species_test.npz', allow_pickle=True) 
 test_locs = data_test['test_locs']
 test_pos_inds = dict(zip(data_test['taxon_ids'], data_test['test_pos_inds']))
 

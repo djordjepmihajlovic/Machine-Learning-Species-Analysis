@@ -1,0 +1,14 @@
+\section{Data preparation}
+
+%\hl{Explain efforts to balance data, creates weights for each species that can then be used in training the models.}
+
+%\hl{Only consider test data at which species are present}
+
+Through the exploratory analysis, it was evident that a significant imbalance existed within the data-set that needed to be considered before model training could begin. Imbalances in class distributions introduce bias during the training of the models, leading to a loss of performance. To avoid this, individual species weights were introduced via the equation\footnote{Note; this is the built-in weight equation from sk-learn.} 
+\begin{lstlisting}[language=Python] 
+species_weight = len(train_locs)/(species_count * no.species) 
+\end{lstlisting}
+These weights ensure that the models place more emphasis on species that may be underrepresented in the training data-set \cite{hashemi2018weighted}. This method then allowed for the whole data-set to be used in training the algorithms, unlike other methods such as sub-sampling which would sacrifice information about the data-set. Due to our data having only two features, latitude and longitude, dimensionality reduction is unneeded, as our data is already in a low-dimensional space (2D).
+%a decision was made to bring labels with locations exceeding the mean down to this average level. The selection method involved randomly sub-sampling  544 data points. This process aimed to create a more equitable distribution of samples across all classes, creating an improved model for generalization. This model was chosen for its simplicity, allowing consistency across all models and easier interpretability, as well as for its positive results [\hl{This is what is harder to justify... I got better results using this balance method but they were "anecdotical", could we justify this another way?}].  By limiting the number of observations for certain species, the models are encouraged to learn more about the entire data-set, rather than being swayed by the prevalence of certain classes.
+
+

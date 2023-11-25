@@ -18,7 +18,7 @@ import pandas as pd
 import csv
 
 #Load data
-data = np.load('species_train.npz')
+data = np.load('../../data/species_train.npz')
 train_locs = data['train_locs']          
 train_ids = data['train_ids']               
 species = data['taxon_ids']      
@@ -34,7 +34,7 @@ train_ids_v3 = np.array(train_ids_v2)
 
 #Load test data plus reverse dictionary
 
-data_test = np.load('species_test.npz', allow_pickle=True)
+data_test = np.load('../../data/species_test.npz', allow_pickle=True)
 test_locs = data_test['test_locs']
 test_pos_inds = dict(zip(data_test['taxon_ids'], data_test['test_pos_inds'])) 
 with open('reverse_dict.pkl', 'rb') as file:

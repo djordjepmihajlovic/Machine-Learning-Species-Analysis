@@ -5,7 +5,7 @@ from sklearn.linear_model import LogisticRegression
 import pickle
 
 #Load data
-data = np.load('species/species_train.npz')
+data = np.load('../../data/species_train.npz')
 train_locs = data['train_locs']          
 train_ids = data['train_ids']               
 species = data['taxon_ids']      
@@ -56,7 +56,7 @@ new_train_locs = train_locs[flat_wanted_indices]
 new_train_ids = train_ids_v3[flat_wanted_indices]
 
 # test data
-data_test = np.load('species/species_test.npz', allow_pickle=True) 
+data_test = np.load('../../data/species_test.npz', allow_pickle=True) 
 test_locs = data_test['test_locs']
 num_locs = len(test_locs)
 test_pos_inds = dict(zip(data_test['taxon_ids'], data_test['test_pos_inds']))
@@ -68,7 +68,7 @@ lr.fit(train_locs, train_ids)
 with open('lr_model.pkl','wb') as f:
     pickle.dump(lr,f)
 """
-with open('species/lr_model.pkl', 'rb') as f:
+with open('lr_model.pkl', 'rb') as f:
     lr = pickle.load(f)
 
 
