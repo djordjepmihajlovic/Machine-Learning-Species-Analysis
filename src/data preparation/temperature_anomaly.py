@@ -6,8 +6,8 @@ import cartopy.crs as ccrs
 #import seaborn as sns
 
 # load datasets
-hist_30_year = xr.load_dataset('species/climate_data/ts_Amon_HadGEM3-GC31-LL_historical_r1i1p1f3_gn_19840116-20141216_v20190624.nc')
-proj = xr.load_dataset('species/climate_data/ts_Amon_HadGEM3-GC31-LL_ssp585_r1i1p1f3_gn_20500116-20501216_v20200114.nc')
+hist_30_year = xr.load_dataset('../../data/climate_data/ts_Amon_HadGEM3-GC31-LL_historical_r1i1p1f3_gn_19840116-20141216_v20190624.nc')
+proj = xr.load_dataset('../../data/climate_data/ts_Amon_HadGEM3-GC31-LL_ssp585_r1i1p1f3_gn_20500116-20501216_v20200114.nc')
 
 baseline = hist_30_year['ts'].mean(dim='time') - 273.15
 projected = proj['ts'].mean(dim='time') - 273.15

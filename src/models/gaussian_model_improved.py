@@ -16,23 +16,23 @@ def plot_confusion_matrix(cm, classes=None, title='Confusion matrix'):
     plt.show()
 
 # load train data
-data = np.load('species/species_train.npz')
+data = np.load('../../data/species_train.npz')
 ids = data['train_ids']
 classes = np.unique(ids)
 coords = np.array(list(zip(data['train_locs'][:,0], data['train_locs'][:,1]))) 
 species_names = dict(zip(data['taxon_ids'], data['taxon_names']))
 
 # test data
-data_test = np.load('species/species_test.npz', allow_pickle=True) 
+data_test = np.load('../../data/species_test.npz', allow_pickle=True) 
 test_locs = data_test['test_locs']
 test_pos_inds = dict(zip(data_test['taxon_ids'], data_test['test_pos_inds']))
 
 # load mean vector and covariance matrix data
-means = np.load('species/gauss_data/means.npy', allow_pickle=True).item()
-covs = np.load('species/gauss_data/covs.npy', allow_pickle=True).item()
+means = np.load('../../data/gauss_data/means.npy', allow_pickle=True).item()
+covs = np.load('../../data/gauss_data/covs.npy', allow_pickle=True).item()
 
 # load per class likelihood
-likelihood = np.load('species/gauss_data/likelihood.npy', allow_pickle=True).item()
+likelihood = np.load('../../data/gauss_data/likelihood.npy', allow_pickle=True).item()
 
 def prior_prob(id, lat, lon):
     mu = means[id]

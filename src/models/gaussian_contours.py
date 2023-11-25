@@ -6,7 +6,7 @@ from geopandas import GeoDataFrame
 from shapely.geometry import Point
 
 # load train data
-data = np.load('species/species_train.npz')
+data = np.load('../../data/species_train.npz')
 ids = data['train_ids']
 classes = np.unique(ids)
 coords = np.array(list(zip(data['train_locs'][:,0], data['train_locs'][:,1]))) 

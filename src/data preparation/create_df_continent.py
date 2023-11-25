@@ -23,9 +23,9 @@ from collections import Counter
 
 
 # Read the CSV file into a DataFrame
-df = pd.read_csv("all_species_continent_data.csv")
+df = pd.read_csv("../../data/all_species_continent_data.csv")
 
-data = np.load('species_train.npz')
+data = np.load('../../data/species_train.npz')
 train_locs = data['train_locs']          
 train_ids = data['train_ids']               
 species = data['taxon_ids']      

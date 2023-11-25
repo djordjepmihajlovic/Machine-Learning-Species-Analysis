@@ -8,7 +8,7 @@ from warnings import simplefilter
 simplefilter(action='ignore', category=FutureWarning)
    
 #Load data
-data = np.load('species_train.npz')
+data = np.load('../../data/species_train.npz')
 train_locs = data['train_locs']          
 train_ids = data['train_ids']               
 species = data['taxon_ids']      
@@ -59,7 +59,7 @@ new_train_locs = train_locs[flat_wanted_indices]
 new_train_ids = train_ids_v3[flat_wanted_indices]
 """
 # test data
-data_test = np.load('species_test.npz', allow_pickle=True) 
+data_test = np.load('../../data/species_test.npz', allow_pickle=True) 
 test_locs = data_test['test_locs']
 test_ids = data_test['taxon_ids']
 test_species = np.unique(test_ids)
@@ -84,7 +84,7 @@ def get_f1_score(id, threshold, probs):
 
 k_vals = np.array([5,10,25,50,75,100,150,250,500])
 mean_vals = np.zeros(len(k_vals))
-weights = np.load('weights.npy')
+weights = np.load('../../data/weights.npy')
 for k in k_vals:
     # k nearest neighbours classifier
     knn = KNeighborsClassifier(n_neighbors = k)

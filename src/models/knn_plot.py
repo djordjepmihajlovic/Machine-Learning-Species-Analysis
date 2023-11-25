@@ -4,7 +4,7 @@ import geopandas as gpd
 from sklearn.neighbors import KNeighborsClassifier
 
 #Load data
-data = np.load('species/species_train.npz')
+data = np.load('../../data/species_train.npz')
 train_locs = data['train_locs']          
 train_ids = data['train_ids']               
 species = data['taxon_ids']      
@@ -55,7 +55,7 @@ new_train_locs = train_locs[flat_wanted_indices]
 new_train_ids = train_ids_v3[flat_wanted_indices]
 """
 # test data
-data_test = np.load('species/species_test.npz', allow_pickle=True) 
+data_test = np.load('../../data/species_test.npz', allow_pickle=True) 
 test_locs = data_test['test_locs']
 num_locs = len(test_locs)
 test_pos_inds = dict(zip(data_test['taxon_ids'], data_test['test_pos_inds']))
@@ -63,7 +63,7 @@ test_pos_inds = dict(zip(data_test['taxon_ids'], data_test['test_pos_inds']))
 # k nearest neighbours classifier, optimal k found by examining F1 scores
 knn = KNeighborsClassifier(n_neighbors = 50)
 knn.fit(train_locs, train_ids)
-weights = knn.load('weights.npy')
+weights = knn.load('../../data/weights.npy')
 id = 12716 # turdus merula
 id_index = np.where(knn.classes_ == id)[0][0]
 weight = weights[id_index]
