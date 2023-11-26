@@ -12,6 +12,20 @@ Here is a brief overview of the structure of the code layout:
 * data: contains all data, given and generated, used to train and test models.
 * results: found results and visualization methods (via seaborn and matplotlib)
 
+## Requirements
+
+To run the code below a python virtual environment with the following packages installed will need to be setup:
+
+* matplotlib
+* geopandas
+* numpy
+* shapely
+* sklearn
+* seaborn
+* PyTorch
+* geopy
+* pandas
+
 
 ## Running code and obtaining results
 
