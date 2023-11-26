@@ -5,12 +5,12 @@
 The following code is separated into three different folders; src, results and data. 
 
 Here is a brief overview of the structure of the code layout:
-* src: contains all code used to generate results from the project, separated into two different folders for implementing machine learning models and analysis/data preparation.
+* /src: contains all code used to generate results from the project, separated into two different folders for implementing machine learning models and analysis/data preparation.
     * models: models contains all the models and implementations investigated
     * data preparation: code used to investigate data; such as finding sparse/dense populations, investigating top species and analyzing bioclimatic and climate data appropriately for training
 
-* data: contains all data, given and generated, used to train and test models.
-* results: found results and visualization methods (via seaborn and matplotlib)
+* /data: contains all data, given and generated, used to train and test models.
+* /results: found results and visualization methods (via seaborn and matplotlib)
 
 ## Requirements
 
@@ -29,9 +29,21 @@ To run the code below a python virtual environment with the following packages i
 
 ## Running code and obtaining results
 
-## src :
+## /src :
 
 * /models:
+
+    To run all scripts for the 2 feature trained models:
+
+    ```models_2_feature.sh
+    ```
+
+    To run all scripts for the 8 feature trained models:
+
+    ```models_8_feature.sh
+    ```
+
+    A description of running the code is included below:
 
     * Feed-forward neural network algorithms:
 
@@ -64,6 +76,11 @@ To run the code below a python virtual environment with the following packages i
 
     
 * /data preparation:
+
+    To run all scripts for the data preparation tasks:
+
+    ```data_prep.sh
+    ```
 
     Note, all data has already been generated and saved into the /data folder, however instructions to run the files to generate the data are given below:
 
