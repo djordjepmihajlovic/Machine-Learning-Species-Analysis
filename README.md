@@ -35,12 +35,14 @@ To run the code below a python virtual environment with the following packages i
 
     To run all scripts for the 2 feature trained models:
 
-    ```models_2_feature.sh
+    ```bash
+        models_2_feature.sh
     ```
 
     To run all scripts for the 8 feature trained models:
 
-    ```models_8_feature.sh
+    ```bash
+        models_8_feature.sh
     ```
 
     A description of running the code is included below:
@@ -79,7 +81,8 @@ To run the code below a python virtual environment with the following packages i
 
     To run all scripts for the data preparation tasks:
 
-    ```data_prep.sh
+    ```bash
+        data_prep.sh
     ```
 
     Note, all data has already been generated and saved into the /data folder, however instructions to run the files to generate the data are given below:
